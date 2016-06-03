@@ -10,6 +10,8 @@
 #include "protos/task_content.pb.h"
 #include "protos/master_service.pb.h"
 
+#include "node/response/curl_response.h"
+#include "node/curl/curl_lib.h"
 
 using std::string;
 
@@ -27,6 +29,8 @@ public:
 
 private:
 
+  bool _send_result(const std::string& result);
+
   TaskDef _task_def;
 
   HTTP_CONTENT _content;
@@ -39,12 +43,26 @@ HttpTask::HttpTask(const TaskDef* task):_task_def(*task) {
 }
 
 void HttpTask::run() {
+
+
+  node::CurlResponse resp;
+
+  curl_get(_task_def.dest(),&resp);
+
+  _send_result(resp.dump());
+
   printf("run http task, match content: %s", _content.match_content().c_str());
 }
 
 //TODO parser http is valid
 bool HttpTask::varify_task_content() const {
   return true;
+}
+
+bool HttpTask::_send_result(const std::string &result) {
+
+  printf(result.c_str());
+  return false;
 }
 
 

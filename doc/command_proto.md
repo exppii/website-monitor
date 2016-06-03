@@ -44,3 +44,26 @@
   "custom_dns" : "114.114.114.114"
 }
 ```
+
+### 由采集器节点获取数据
+
+```json
+
+
+```
+
+
+curl time
+
+```log
+curl_easy_perform()
+    |
+    |--NAMELOOKUP
+    |--|--CONNECT
+    |--|--|--APPCONNECT
+    |--|--|--|--PRETRANSFER
+    |--|--|--|--|--STARTTRANSFER
+    |--|--|--|--|--|--TOTAL
+    |--|--|--|--|--|--REDIRECT
+
+```
