@@ -6,23 +6,29 @@
 
 #include "node/task/task_factory.h"
 #include "protos/master_service.pb.h"
+#include "protos/task_content.pb.h"
 
 using namespace std;
 using namespace webmonitor;
 
-JobDef create_job(const int id, const std::string& content){
+JobDef create_job(){
+
   JobDef job;
 
   auto task = job.mutable_task();
 
-  task->set_id(id);
-  task->set_content(content);
-  task->set_proto(TaskDef::HTTP);
+  task->set_status(TaskDef::RUN);
+  task->set_type(TaskDef::HTTP);
 
-  job.set_status(JobDef::RUNNING);
+  HTTP_CONTENT content;
+  content.set_match_cmd(HTTP_CONTENT::NOT_CARE);
+  content.set_method(HTTP_CONTENT::GET);
+  content.set_match_content("404");
 
-  job.add_worker_ids(1);
-  job.add_worker_ids(2);
+  task->mutable_content()->PackFrom(content);
+
+  job.add_node_list(1);
+  job.add_node_list(2);
 
   return job;
 }
@@ -39,7 +45,7 @@ int main(int argc, char const *argv[]) {
 
   TaskFactory factory;
 
-  auto job = create_job(1000,http_task);
+  auto job = create_job();
 
   auto task = job.task();
 

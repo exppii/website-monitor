@@ -7,9 +7,9 @@
 #include <string>
 
 #include "node/task/task_interface.h"
+#include "protos/task_content.pb.h"
 #include "protos/master_service.pb.h"
 
-#include "common/json.hpp"
 
 using std::string;
 
@@ -23,65 +23,28 @@ public:
 
   void run() override;
 
-  virtual std::string dump() const override;
+  bool varify_task_content() const override;
 
 private:
 
-  void _parser_task_content(const TaskDef* task);
+  TaskDef _task_def;
 
-//  |请求方法(HTTP_REQ_CMD)|`HEAD`|1|head|
-//  |请求方法(HTTP_REQ_CMD)|`GET`|2|get|
-//  |请求方法(HTTP_REQ_CMD)|`POST`|3|post|
-//  |匹配方法(MATCH_CMD)|`YES`|1|匹配响应|
-//  |匹配方法(MATCH_CMD)|`NO`|2|不匹配响应|
-//  |匹配方法(MATCH_CMD)|`NOT_CARE`|3|不关心|
-
-  enum METHOD { HEAD = 1, GET, POST };
-  enum MATCH {YES =1, NO, NOT_CARE};
-
-  METHOD _method{HEAD};
-  MATCH _match_or_not{NOT_CARE};
-
-  std::string _content;
+  HTTP_CONTENT _content;
 
 };
 
-//  {
-//    "frequency"  : 10,
-//    "dest" : "http://website.com",
-//    "http_method" : 1,
-//    "resp_context" : "this is correct data",
-//    "match_method" : 3,
-//  }
 
-HttpTask::HttpTask(const TaskDef* task)
-    :TaskInterface(task->id(),task->frequency(),task->dest()) {
-  _parser_task_content(task);
+HttpTask::HttpTask(const TaskDef* task):_task_def(*task) {
+  if(task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 void HttpTask::run() {
-  printf("run http task, taskid: %lld", _ID);
+  printf("run http task, match content: %s", _content.match_content().c_str());
 }
 
-void HttpTask::_parser_task_content(const TaskDef* task) {
-  try {
-
-    const auto j = nlohmann::json::parse(task->content());
-    _content = j["resp_context"].get<string>();
-    _method = static_cast<METHOD>(j["http_method"].get<int>());
-    _match_or_not = static_cast<MATCH>(j["match_method"].get<int>());
-    _task_content_ok = true;
-  }catch (const std::exception& ex) {
-   //log error
-  }
-
-}
-
-std::string HttpTask::dump() const {
-  std::string ret = _content;
-  ret += std::to_string(_method);
-  ret += std::to_string(_match_or_not);
-  return ret;
+//TODO parser http is valid
+bool HttpTask::varify_task_content() const {
+  return true;
 }
 
 

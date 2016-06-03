@@ -2,11 +2,12 @@
 // Created by 刘优 on 16/6/2.
 //
 
+
 #include "node/task/dns_task.h"
 
 #include "node/task/task_interface.h"
 #include "protos/master_service.pb.h"
-#include "common/json.hpp"
+#include "protos/task_content.pb.h"
 
 using std::string;
 
@@ -18,38 +19,27 @@ public:
   explicit DNSTask(const TaskDef*);
 
   void run() override;
-  std::string dump() const override;
+
+  bool varify_task_content() const override;
 private:
 
-  void _parser_task_content(const TaskDef* task);
+  TaskDef _task_def;
 
-  std::string _dns;
+  DNS_CONTENT _content;
 
 };
 
-DNSTask::DNSTask(const TaskDef* task)
-  :TaskInterface(task->id(),task->frequency(),task->dest()) {
-  _parser_task_content(task);
+DNSTask::DNSTask(const TaskDef* task):_task_def(*task) {
+  if(task->content().Is<DNS_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 void DNSTask::run() {
-  printf("run dns task, taskid: %lld", _ID);
+  printf("run dns task, taskid: %lld", 100L);
 }
 
-void DNSTask::_parser_task_content(const TaskDef *task) {
-  try {
-
-    const auto j = nlohmann::json::parse(task->content());
-
-    _dns = j["dns"].get<string>();
-    _task_content_ok = true;
-  }catch (const std::exception& ex) {
-    //log error
-  }
-}
-
-std::string DNSTask::dump() const {
-  return _dns;
+//TODO
+bool DNSTask::varify_task_content() const {
+  return false;
 }
 
 

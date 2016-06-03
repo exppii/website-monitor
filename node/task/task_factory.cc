@@ -8,7 +8,7 @@
 #include "node/task/dns_task.h"
 #include "node/task/ping_task.h"
 
-#include "common/json.hpp"
+#include "protos/task_content.pb.h"
 #include "protos/master_service.pb.h"
 
 using std::make_shared;
@@ -17,7 +17,7 @@ namespace webmonitor {
 std::shared_ptr<TaskInterface> TaskFactory::create(const TaskDef* task) {
   std::shared_ptr<TaskInterface> interface = nullptr;
 
-  switch (task->proto()) {
+  switch (task->type()) {
     case TaskDef::HTTP: {
       interface = HttpTaskSharedPtr(task);
       break;

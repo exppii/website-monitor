@@ -11,5 +11,6 @@ add_executable(task_test ${SOURCE_FILES}
         ${HEDER_FILES}
         test_task.cc
         "${PROTO_HDRS_DIR}/master_service.pb.cc"
+        "${PROTO_HDRS_DIR}/task_content.pb.cc"
         )
 target_link_libraries(task_test ${LINK_LIBS})
