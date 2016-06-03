@@ -5,23 +5,19 @@ syntax = "proto3";
 
 package webmonitor;
 
-//enum METHOD { HEAD = 1, GET, POST };
-//enum MATCH {YES =1, NO, NOT_CARE};
-
 message HTTP_CONTENT {
     enum METHOD {
-        UNKNOWN = 0;
-        HEAD = 1;
-        GET = 2;
-        POST = 3;
+      UNKNOWN = 0;
+      HEAD = 1;
+      GET = 2;
+      POST = 3;
     }
     enum MATCHCMD {
-        UNKNOWN = 0;
-        YES = 1;
-        NO = 2;
-        NOT_CARE = 3;
+      NOT_CARE = 0;
+      YES = 1;
+      NO = 2;
     }
-    METHOD req_method = 1;
+    METHOD method = 1;
     MATCHCMD match_cmd = 2;
     string match_content = 3;
 }

@@ -21,19 +21,20 @@ service MasterService {
 
 }
 
+//single task run on node
 message TaskDef {
     enum TYPE {
-        UNKNOWN = 0;
-        HTTP = 1;
-        PING = 2;
-        DNS = 3;
+      UNKNOWN = 0;
+      HTTP = 1;
+      PING = 2;
+      DNS = 3;
     }
     enum STATUS {
-      UNKNOWN = 0;
+      EXPIRE = 0;
       STOP = 1;
       RUN = 2;
-      EXPIRE = 3;
     }
+
     int32 frequency = 2;
     string dest = 3;
     TYPE type = 4;
@@ -41,6 +42,7 @@ message TaskDef {
     google.protobuf.Any content = 6;
 }
 
+//web client sent this job to taskserver
 message JobDef {
     enum STATUS {
         UNKNOWN = 0;
@@ -54,7 +56,7 @@ message JobDef {
     repeated int64 node_list = 3;
 }
 
-
+//common response message
 message RespStatusDef {
     enum STATUS {
         UNKNOWN = 0;
@@ -94,7 +96,7 @@ message CreateJobResponse {
 //update job
 message UpdateJobRequest {
     int64  job_id = 1;
-    JobDef job = 1;
+    JobDef job = 2;
 }
 
 message UpdateJobResponse {
