@@ -1,0 +1,146 @@
+//
+// Created by 刘优 on 16/5/10.
+//
+syntax = "proto3";
+
+package webmonitor;
+
+import "google/protobuf/any.proto";
+
+service MasterService {
+
+    //web client rpc
+    rpc CreateJob (CreateJobRequest) returns (CreateJobResponse);
+    rpc UpdateJob (UpdateJobRequest) returns (UpdateJobResponse);
+    rpc DeleteJob (DeleteJobRequest) returns (DeleteJobResponse);
+    rpc ListJobStatus (ListJobStatusRequest) returns (ListJobStatusResponse);
+    rpc ListNodeStatus (ListNodeStatusRequest) returns (ListNodeStatusResponse);
+    //node client rpc
+    rpc GetJob (GetJobRequest) returns (GetJobResponse);
+    rpc ReportStatus (ReportStatusRequest) returns (ReportStatusResponse);
+
+}
+
+message TaskDef {
+    enum TYPE {
+        UNKNOWN = 0;
+        HTTP = 1;
+        PING = 2;
+        DNS = 3;
+    }
+    enum STATUS {
+      UNKNOWN = 0;
+      STOP = 1;
+      RUN = 2;
+      EXPIRE = 3;
+    }
+    int32 frequency = 2;
+    string dest = 3;
+    TYPE type = 4;
+    STATUS status = 5;
+    google.protobuf.Any content = 6;
+}
+
+message JobDef {
+    enum STATUS {
+        UNKNOWN = 0;
+        RUNNING = 1;
+        STOPPED = 2;
+        FAILED = 3;
+        EXPIRED = 4;
+    }
+    STATUS status = 1;
+    TaskDef task = 2;
+    repeated int64 node_list = 3;
+}
+
+
+message RespStatusDef {
+    enum STATUS {
+        UNKNOWN = 0;
+        SUCCESS = 1;
+        FAILED = 2;
+    }
+    STATUS status = 1;
+    string message = 2;
+}
+
+
+message NodeStatusDef {
+    enum STATUS {
+        UNKNOWN = 0;
+        RUNNING = 1;
+        STOPPED = 2;
+        LOSTED = 3;
+    }
+    STATUS status = 1;
+}
+
+message NodeDef {
+    int64 id = 1;
+    string name = 2;
+}
+
+//create job
+message CreateJobRequest {
+    int64 job_id = 1;
+    JobDef job = 2;
+}
+
+message CreateJobResponse {
+    RespStatusDef response = 1;
+}
+
+//update job
+message UpdateJobRequest {
+    int64  job_id = 1;
+    JobDef job = 1;
+}
+
+message UpdateJobResponse {
+    RespStatusDef response = 1;
+}
+
+//delete job
+message DeleteJobRequest {
+    int64 job_id = 1;
+}
+
+message DeleteJobResponse {
+    RespStatusDef response = 1;
+}
+
+//list all job status
+message ListJobStatusRequest {
+
+}
+
+message ListJobStatusResponse {
+    map<int64, JobDef.STATUS> jobs = 1;
+}
+
+//list all worker status
+message ListNodeStatusRequest {
+
+}
+
+message ListNodeStatusResponse {
+    map<int64, NodeStatusDef> workers = 1;
+}
+
+//only used on node client
+message GetJobRequest {
+    NodeDef  node = 1;
+}
+
+message GetJobResponse {
+  map<int64, TaskDef> task_map = 1;
+}
+
+//only used on node client
+message ReportStatusRequest {
+    NodeStatusDef  status = 1;
+}
+
+message ReportStatusResponse {
+}

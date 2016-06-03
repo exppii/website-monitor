@@ -1,0 +1,10 @@
+#files
+*.so
+*.o
+*.log
+*.DS_Store
+#folder
+bin/
+build
+.idea
+

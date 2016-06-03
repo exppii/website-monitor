@@ -1,0 +1,36 @@
+//
+// Created by 刘优 on 16/6/3.
+//
+syntax = "proto3";
+
+package webmonitor;
+
+//enum METHOD { HEAD = 1, GET, POST };
+//enum MATCH {YES =1, NO, NOT_CARE};
+
+message HTTP_CONTENT {
+    enum METHOD {
+        UNKNOWN = 0;
+        HEAD = 1;
+        GET = 2;
+        POST = 3;
+    }
+    enum MATCHCMD {
+        UNKNOWN = 0;
+        YES = 1;
+        NO = 2;
+        NOT_CARE = 3;
+    }
+    METHOD req_method = 1;
+    MATCHCMD match_cmd = 2;
+    string match_content = 3;
+}
+
+message PING_CONTENT {
+    int32 pkg_num = 1;
+    int32 pkg_size = 2;
+}
+
+message DNS_CONTENT {
+    string dns = 1;
+}
