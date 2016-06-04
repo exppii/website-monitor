@@ -25,3 +25,11 @@ std::string get_current_path() {
   current_absolute_path = current_absolute;
   return (current_absolute_path + "/");
 }
+
+
+bool init_logger(const std::string& path, const std::string& id) noexcept {
+
+
+
+
+}

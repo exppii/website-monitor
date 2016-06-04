@@ -3,3 +3,20 @@
 //
 
 #include "options.h"
+
+namespace webmonitor {
+
+
+std::string Options::get_log_path() {
+  return "";
+}
+
+std::string Options::get_log_config_path() {
+  return "";
+}
+
+
+}
+
+
+

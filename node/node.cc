@@ -3,34 +3,36 @@
 //
 
 #include <iostream>
-#include <grpc++/grpc++.h>
-#include "node/grpc_remote_node.h"
-
+#include "node/node_server.h"
+#include "common/options.h"
+#include "common/utils.h"
+#include "node/logger.h"
 
 using namespace std;
 using namespace webmonitor;
 
 int main(int argc, char const *argv[]) {
 
-  auto channel = grpc::CreateChannel(
-      "localhost:50051", grpc::InsecureChannelCredentials());
+  Options opt;
 
-  auto client = GrpcNodePtr(channel);
+  //create logs dir to save log files.
+  mkdir_if_not_exists(opt.get_log_path());
 
-  GetJobRequest req;
-  GetJobResponse resp;
+  //init log config
+  init_logger(opt.get_log_config_path(), node::NODE_TAG);
 
-  auto info = req.mutable_node();
+  auto server = node::NodeServerUniquePtr(&opt);
 
-  info->set_id(2000);
+  auto logger = spdlog::get(node::NODE_TAG);
 
-  auto status = client->get_job(&req,&resp);
-
-  if(status.ok()) {
-    for (const auto& t : resp.task_list()) {
-      cout << t.id() << endl;
-    }
+  try {
+    server->start();
+  }catch (const std::exception& ex) {
+    logger->error("Exception happened: ") << ex.what();
+    return 1;
+  } catch (...) {
+    logger->error("Unkown error happened.");
+    return 2;
   }
-
-
+  return 0;
 }

@@ -11,11 +11,15 @@ class ServiceInterface {
 
 public:
 
+  ServiceInterface(){}
+  ServiceInterface(const ServiceInterface&) = delete;
+  ServiceInterface& operator=(const ServiceInterface&) = delete;
+
   virtual ~ServiceInterface(){}
 
   virtual void start() = 0;
 
-  virtual void shut_down() = 0;
+  virtual void stop() = 0;
 
 };
 
