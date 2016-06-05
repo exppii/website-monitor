@@ -28,7 +28,8 @@ class NodeServer : public ServiceInterface {
 public:
   using ServiceInterface::ServiceInterface;
 
-  NodeServer(const Options* options){
+  NodeServer(const Options* options)
+      :_data_proc(DataProcServiceUniquePtr(options)){
     _logger->info("Init NodeServer...");
   }
 

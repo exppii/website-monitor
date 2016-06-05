@@ -17,7 +17,7 @@ namespace node {
 class NodeTaskManager : public TaskManagerInterface {
 public:
 
-  NodeTaskManager(const DataProcServiceInterface* proc):_data_proc(proc){}
+  explicit NodeTaskManager(const DataProcServiceInterface* proc):_data_proc(proc){}
 
   bool add_task() override;
   void start() override ;

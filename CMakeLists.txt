@@ -89,6 +89,14 @@ FOREACH(FIL ${PROTO_FILES})
   )
 ENDFOREACH()
 
+
+# Copy all config files
+FILE(GLOB CONFIG_FILES conf/*.*)
+FOREACH(_filepath ${CONFIG_FILES})
+  get_filename_component(var ${_filepath} NAME)
+  configure_file(${_filepath}  conf/${var} COPYONLY)
+ENDFOREACH()
+
 add_subdirectory(taskserver)
 #add_subdirectory(webclient)
 add_subdirectory(node)

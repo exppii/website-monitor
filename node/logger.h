@@ -13,6 +13,8 @@ namespace node {
 
 const std::string NODE_TAG = "node_log";
 
+bool init_logger(const std::string& path) noexcept;
+
 }
 
 }

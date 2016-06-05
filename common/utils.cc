@@ -5,6 +5,8 @@
 #include "common/utils.h"
 #include <sys/stat.h>  // for mkdir
 
+#include <sstream>
+#include <fstream>
 
 
 bool file_exists(const std::string& path) {
@@ -27,9 +29,15 @@ std::string get_current_path() {
 }
 
 
-bool init_logger(const std::string& path, const std::string& id) noexcept {
-
-
-
-
+bool read_file(const std::string& file_path, std::string* dest) {
+  bool ret = false;
+  std::ifstream file(file_path);
+  if (file) {
+    std::stringstream ss;
+    ss << file.rdbuf();
+    *dest = ss.str();
+    ret = true;
+    file.close();
+  }
+  return ret;
 }

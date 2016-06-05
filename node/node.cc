@@ -13,18 +13,19 @@ using namespace webmonitor;
 
 int main(int argc, char const *argv[]) {
 
-  Options opt;
+  Options opt("../conf/node_service.config");
 
   //create logs dir to save log files.
-  mkdir_if_not_exists(opt.get_log_path());
+  mkdir_if_not_exists("../logs");
 
   //init log config
-  init_logger(opt.get_log_config_path(), node::NODE_TAG);
+  node::init_logger(opt.get_log_config_path());
 
   auto server = node::NodeServerUniquePtr(&opt);
 
   auto logger = spdlog::get(node::NODE_TAG);
 
+  logger->info("current version: 0.1.0");
   try {
     server->start();
   }catch (const std::exception& ex) {

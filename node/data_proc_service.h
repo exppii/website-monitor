@@ -10,6 +10,8 @@
 
 namespace webmonitor {
 
+class Options;
+
 namespace node {
 
 class DataProcServiceInterface : public ServiceInterface {
@@ -20,7 +22,7 @@ public:
 
 };
 
-std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr();
+std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr(const Options*);
 
 } //namespace node
 } //namespace webmonitor

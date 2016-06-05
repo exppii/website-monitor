@@ -14,7 +14,7 @@ void mkdir_if_not_exists(const std::string& path);
 
 std::string get_current_path();
 
-bool init_logger(const std::string& path, const std::string& id) noexcept;
+bool read_file(const std::string& file_path, std::string* dest);
 
 /// simple implements for perfect-forwards make_unique
 #if __cplusplus < 201402L

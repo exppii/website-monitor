@@ -23,7 +23,7 @@ class GrpcService : public ServiceInterface {
 public:
   using ServiceInterface::ServiceInterface;
 
-  GrpcService(const TaskManagerInterface* manager):_task_manager(manager) {
+  explicit GrpcService(const TaskManagerInterface* manager):_task_manager(manager) {
     _logger->info("Init Node Service...");
   }
 
@@ -33,19 +33,27 @@ public:
 
 private:
 
+  void _work_thread();
+
+private:
+
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
 
   const TaskManagerInterface*  _task_manager;
 
+  std::unique_ptr <NodeInterface> _grpc_node;
+
+
+
 };
 
 void GrpcService::start() {
-  _logger->info("start NodeService main thread...");
+  _logger->info("start GrpcService main thread...");
 }
 
 void GrpcService::stop() {
-  _logger->info("shutdown all NodeService threads...");
+  _logger->info("shutdown all GrpcService threads...");
 }
 
 std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(const TaskManagerInterface* manager) {

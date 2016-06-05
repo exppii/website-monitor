@@ -16,14 +16,15 @@ namespace node {
 
 class NodeDataProcService : public DataProcServiceInterface {
 public:
-  NodeDataProcService(){}
+
+  explicit NodeDataProcService(const Options* option){}
 
   bool add_data(const std::string&) override;
 
   void start() override ;
 
   void stop() override ;
-
+  
 
 };
 
@@ -40,8 +41,8 @@ void NodeDataProcService::stop() {
 }
 
 
-std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr() {
-  return make_unique<NodeDataProcService>();
+std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr(const Options* options) {
+  return make_unique<NodeDataProcService>(options);
 }
 } //namespace node
 
