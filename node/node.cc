@@ -28,6 +28,11 @@ int main(int argc, char const *argv[]) {
   logger->info("current version: 0.1.0");
   try {
     server->start();
+
+    auto ret = server->wait_shutdown();
+
+    return ret;
+
   }catch (const std::exception& ex) {
     logger->error("Exception happened: ") << ex.what();
     return 1;
@@ -35,5 +40,4 @@ int main(int argc, char const *argv[]) {
     logger->error("Unkown error happened.");
     return 2;
   }
-  return 0;
 }

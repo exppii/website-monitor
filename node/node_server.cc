@@ -3,6 +3,9 @@
 //
 
 #include "node/node_server.h"
+
+#include <thread>
+
 #include "node/logger.h"
 
 #include "common/options.h"
@@ -23,10 +26,9 @@ namespace webmonitor {
 
 namespace node {
 
-class NodeServer : public ServiceInterface {
+class NodeServer : public NodeServerInterface {
 
 public:
-  using ServiceInterface::ServiceInterface;
 
   NodeServer(const Options* options)
       :_data_proc(DataProcServiceUniquePtr(options)){
@@ -36,6 +38,8 @@ public:
   void start() override;
 
   void stop() override;
+
+  int wait_shutdown() override;
 
 private:
 
@@ -49,14 +53,28 @@ private:
 
 void NodeServer::start() {
   _logger->info("start NodeServer main thread...");
+  _data_proc->start();
+  _task_manager->start();
+  _grpc_service->start();
 }
 
 void NodeServer::stop() {
   _logger->info("shutdown all NodeServer threads...");
+  _grpc_service->stop();
+  _task_manager->stop();
+  _data_proc->stop();
+}
+
+//TODO
+int NodeServer::wait_shutdown() {
+
+  while (true) {
+    std::this_thread::sleep_for(std::chrono::seconds(30));
+  }
 }
 
 
-std::unique_ptr<ServiceInterface> NodeServerUniquePtr(const Options* options) {
+std::unique_ptr<NodeServerInterface> NodeServerUniquePtr(const Options* options) {
   return make_unique<NodeServer>(options);
 }
 

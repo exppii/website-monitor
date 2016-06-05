@@ -13,7 +13,15 @@ class Options;
 
 namespace node {
 
-std::unique_ptr<ServiceInterface> NodeServerUniquePtr(const Options*);
+class NodeServerInterface : public ServiceInterface {
+public:
+  virtual ~NodeServerInterface(){}
+
+  virtual int wait_shutdown() = 0;
+
+};
+
+std::unique_ptr<NodeServerInterface> NodeServerUniquePtr(const Options*);
 
 }
 
