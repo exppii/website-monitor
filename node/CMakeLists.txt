@@ -10,7 +10,8 @@ set(LINK_LIBS grpc grpc++_unsecure protobuf dl)
 add_executable(nodeclient ${SOURCE_FILES}
         ${HEDER_FILES}
         "../common/options.cc"
-        "../common/utils.cc")
+        "../common/utils.cc"
+        "./dataproc/zmq_process.cc")
 target_link_libraries(nodeclient ${LINK_LIBS})
 
 
