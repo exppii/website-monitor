@@ -4,7 +4,7 @@ LINK_DIRECTORIES(${curl_LIBRARY_DIRS})
 
 file(GLOB HEDER_FILES "./*.h" "${PROTO_HDRS_DIR}/*.h" )
 file(GLOB SOURCE_FILES "./*.cc" "${PROTO_HDRS_DIR}/*.cc")
-list(REMOVE_ITEM SOURCE_FILES "/Users/liuyou/Workspace/website-monitor/node/./node_client.cc")
+
 
 set(LINK_LIBS grpc grpc++_unsecure protobuf dl)
 add_executable(nodeclient ${SOURCE_FILES}

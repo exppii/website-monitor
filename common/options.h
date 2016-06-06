@@ -26,6 +26,9 @@ public:
   std::string get_upload_addr() const;
   int get_upload_port() const;
 
+  int64_t get_node_id() const;
+  std::string get_node_name() const;
+
 private:
   std::unique_ptr<LocalConfig> _config;
 };

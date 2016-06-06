@@ -88,6 +88,14 @@ int Options::get_upload_port() const {
   return _config->data["upload_port"].get<int>();
 }
 
+int64_t Options::get_node_id() const {
+  return _config->data["node_id"].get<long>();
+}
+
+std::string Options::get_node_name() const {
+  return _config->data["node_name"].get<std::string>();
+}
+
 
 }
 

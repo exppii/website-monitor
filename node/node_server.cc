@@ -31,7 +31,9 @@ class NodeServer : public NodeServerInterface {
 public:
 
   NodeServer(const Options* options)
-      :_data_proc(DataProcServiceUniquePtr(options)){
+      :_data_proc(DataProcServiceUniquePtr(options)),
+       _task_manager(TaskManagerUniquePtr(_data_proc.get())),
+       _grpc_service(GrpcServiceUniquePtr(_task_manager.get(),options)){
     _logger->info("Init NodeServer...");
   }
 
@@ -46,8 +48,8 @@ private:
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
   std::unique_ptr<DataProcServiceInterface> _data_proc;
-  std::unique_ptr<TaskManagerInterface> _task_manager{TaskManagerUniquePtr(_data_proc.get())};
-  std::unique_ptr<ServiceInterface> _grpc_service{GrpcServiceUniquePtr(_task_manager.get())};
+  std::unique_ptr<TaskManagerInterface> _task_manager;
+  std::unique_ptr<ServiceInterface> _grpc_service;
 
 };
 

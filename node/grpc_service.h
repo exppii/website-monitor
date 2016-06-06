@@ -10,13 +10,16 @@
 
 namespace webmonitor {
 
+class Options;
+
 namespace node {
 
 class TaskManagerInterface;
 
-std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(const TaskManagerInterface*);
+std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(
+    const TaskManagerInterface *, const Options *);
 
-}
+} //namespace node
 
 } //namespace webmonitor
 
