@@ -6,10 +6,12 @@
 
 #include <thread>
 
-#include "common/options.h"
 #include "node/logger.h"
-
 #include "node/dataproc/zmq_process.h"
+
+
+#include "common/options.h"
+#include "common/type_safe_queue.h"
 
 #if __cplusplus < 201402L
 #include "common/utils.h" //using custom make_uniue
@@ -18,10 +20,9 @@ using std::make_unique;
 #endif
 
 using std::thread;
+using std::string;
 using std::unique_ptr;
-
 using std::chrono::seconds;
-
 
 namespace webmonitor {
 
@@ -30,12 +31,10 @@ namespace node {
 class NodeDataProcService : public DataProcServiceInterface {
 public:
 
-  explicit NodeDataProcService(const Options* option)
-      : _upaddr(option->get_upload_addr()),
-        _port(option->get_upload_port()){
+  explicit NodeDataProcService(const Options* option) {
 
+      //_proc_list.push_back(CompressProcUniuePtr());
       _proc_list.push_back(ZMQProcUniuePtr(option->get_upload_addr(),option->get_upload_port()));
-
   }
 
   bool add_data(const std::string& data) override;
@@ -51,25 +50,24 @@ private:
 private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
-  const std::string _upaddr;
-  const int _port;
 
   bool _running{true};
+
   unique_ptr<thread> _thread{nullptr};
+  SafeQueue<string> _queue;
 
   std::vector<DataProcInterfacePtr> _proc_list;
 
 };
 
 bool NodeDataProcService::add_data(const std::string & data) {
-
-  return false;
+  _logger->debug("push one data to queue...");
+  _queue.push(data);
+  return true;
 }
 
 void NodeDataProcService::start() {
   _logger->info("start NodeDataProcService main thread...");
-
-
 
   _thread.reset(new thread(&NodeDataProcService::_work_thread,this));
 }
@@ -84,8 +82,10 @@ void NodeDataProcService::stop() {
 void NodeDataProcService::_work_thread() {
   _logger->debug("data proc thread started.");
   while (_running) {
-
-    std::this_thread::sleep_for(seconds(3));
+    std::string data{};
+    if(_queue.wait_and_pop(data,3)) {
+      for (const auto& proc : _proc_list) proc->proc(&data);
+    }
   }
 }
 
