@@ -7,6 +7,8 @@
 
 
 #include <memory>
+#include <map>
+#include <node/task/task_interface.h>
 
 #include "common/service_interface.h"
 
@@ -14,14 +16,15 @@ namespace webmonitor {
 
 namespace node {
 
+class TaskInterface;
 class DataProcServiceInterface;
-
+using TaskSharedPtr = std::shared_ptr<TaskInterface>;
 class TaskManagerInterface : public ServiceInterface {
 
 public:
   virtual ~TaskManagerInterface(){}
 
-  virtual bool add_task() = 0;
+  virtual bool add_task(const std::map<int64_t,TaskSharedPtr>& ) = 0;
 
 };
 
