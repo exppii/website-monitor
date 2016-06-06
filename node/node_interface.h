@@ -17,9 +17,9 @@ class NodeInterface {
 public:
   virtual ~NodeInterface() {}
 
-  virtual ::grpc::Status get_job(const GetJobRequest*, GetJobResponse* ) = 0;
+  virtual ::grpc::Status get_job(const GetJobRequest&, GetJobResponse* ) = 0;
 
-  virtual ::grpc::Status report_status(const ReportStatusRequest*, ReportStatusResponse* ) = 0;
+  virtual ::grpc::Status report_status(const ReportStatusRequest&, ReportStatusResponse* ) = 0;
 
 };
 

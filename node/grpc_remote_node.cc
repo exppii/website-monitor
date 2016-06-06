@@ -26,16 +26,16 @@ public:
       :_stub(MasterService::NewStub(channel)) {}
   ~GrpcNode () {}
 
-  grpc::Status get_job(const GetJobRequest* req, GetJobResponse* resp) override {
+  grpc::Status get_job(const GetJobRequest& req, GetJobResponse* resp) override {
     ::grpc::ClientContext ctx;
     _set_deadline(&ctx, _TIMEOUT);
-    return _stub->GetJob(&ctx, *req, resp);
+    return _stub->GetJob(&ctx, req, resp);
   }
 
-  grpc::Status report_status(const ReportStatusRequest* req, ReportStatusResponse* resp) override {
+  grpc::Status report_status(const ReportStatusRequest& req, ReportStatusResponse* resp) override {
     ::grpc::ClientContext ctx;
     _set_deadline(&ctx, _TIMEOUT);
-    return _stub->ReportStatus(&ctx, *req, resp);
+    return _stub->ReportStatus(&ctx, req, resp);
   }
 
 private:
