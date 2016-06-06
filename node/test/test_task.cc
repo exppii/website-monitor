@@ -43,7 +43,7 @@ int main(int argc, char const *argv[]) {
 })";
 
 
-  TaskFactory factory;
+  node::TaskFactory factory;
 
   auto job = create_job();
 
