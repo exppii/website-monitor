@@ -10,9 +10,14 @@
 namespace webmonitor {
 
 class TaskDef;
+
+namespace node {
+
 class TaskInterface;
 std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef*);
 
-}
+} //namespace node
+
+} //namespace webmonitor
 
 #endif //WEBSITEMONITOR_NODE_PING_TASK_H_

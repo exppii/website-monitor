@@ -12,6 +12,8 @@ namespace webmonitor {
 
 class TaskDef;
 
+namespace node {
+
 class TaskFactory {
 public:
   TaskFactory(){}
@@ -19,6 +21,9 @@ public:
   std::shared_ptr<TaskInterface> create(const TaskDef*);
 
 };
+}
+
+
 
 }
 

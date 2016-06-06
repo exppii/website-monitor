@@ -10,6 +10,8 @@
 
 namespace webmonitor {
 
+namespace node {
+
 class TaskInterface {
 
 public:
@@ -26,6 +28,8 @@ protected:
   std::time_t _last_run_time{std::time(nullptr)};
 
 };
+
+}
 
 // inline bool operator==(const TaskInterface &lhs, const TaskInterface &rhs) {
 //   return (lhs.equal_to(rhs) && lhs.dump() == rhs.dump());

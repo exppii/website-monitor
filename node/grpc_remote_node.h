@@ -13,9 +13,16 @@ namespace grpc {
 
 namespace webmonitor {
 
+namespace node {
+
 std::unique_ptr <NodeInterface> GrpcNodePtr(
     std::shared_ptr<::grpc::Channel> channel);
+
 }
+
+}
+
+
 
 
 #endif //WEBSITEMONITOR_NODE_GRPC_REMOTE_NODE_H_

@@ -17,6 +17,7 @@ using std::string;
 
 namespace webmonitor {
 
+namespace node {
 class HttpTask :public TaskInterface {
 public:
 
@@ -70,4 +71,6 @@ std::shared_ptr<TaskInterface> HttpTaskSharedPtr(const TaskDef* task) {
   return std::make_shared<HttpTask>(task);
 }
 
-}
+} //namespace node
+
+} //namespace webmonitor

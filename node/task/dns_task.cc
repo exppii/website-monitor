@@ -13,6 +13,7 @@ using std::string;
 
 namespace webmonitor {
 
+namespace node {
 class DNSTask :public TaskInterface {
 public:
 
@@ -49,4 +50,6 @@ std::shared_ptr<TaskInterface> DNSTaskSharedPtr(const TaskDef* task) {
 
 }
 
-} //namspace
+} //namespace node
+
+} //namespace

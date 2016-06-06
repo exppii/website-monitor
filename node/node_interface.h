@@ -10,6 +10,8 @@
 
 namespace webmonitor {
 
+namespace node {
+
 class NodeInterface {
 
 public:
@@ -20,6 +22,10 @@ public:
   virtual ::grpc::Status report_status(const ReportStatusRequest*, ReportStatusResponse* ) = 0;
 
 };
+
+}
+
+
 
 } //namespace webmonitor
 

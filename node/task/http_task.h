@@ -10,10 +10,15 @@
 namespace webmonitor {
 
 class TaskDef;
+
+namespace node {
+
 class TaskInterface;
 
 std::shared_ptr<TaskInterface> HttpTaskSharedPtr(const TaskDef*);
 
-}
+} //namespace node
+
+} //namespace webmonitor
 
 #endif //WEBSITEMONITOR_HTTP_TASK_H

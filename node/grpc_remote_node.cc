@@ -17,6 +17,8 @@ using ::grpc::Channel;
 
 namespace webmonitor {
 
+namespace node {
+
 class GrpcNode : public NodeInterface {
 
 public:
@@ -51,9 +53,13 @@ private:
 };
 
 std::unique_ptr<NodeInterface> GrpcNodePtr(std::shared_ptr<::grpc::Channel>
-channel){
+                                           channel){
   return make_unique<GrpcNode>(channel);
 }
+
+}
+
+
 
 } //namespace elon
 

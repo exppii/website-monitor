@@ -11,6 +11,8 @@
 using std::string;
 namespace webmonitor {
 
+
+namespace node {
 class PingTask :public TaskInterface {
 public:
 
@@ -43,10 +45,10 @@ bool PingTask::varify_task_content() const {
   return false;
 }
 
-
-
 std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef* task) {
   return std::make_shared<PingTask>(task);
 }
 
-} //namespace
+} //namespace node
+
+} //namespace webmonitor

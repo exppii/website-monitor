@@ -14,6 +14,8 @@
 using std::make_shared;
 namespace webmonitor {
 
+namespace node {
+
 std::shared_ptr<TaskInterface> TaskFactory::create(const TaskDef* task) {
   std::shared_ptr<TaskInterface> interface = nullptr;
 
@@ -40,7 +42,8 @@ std::shared_ptr<TaskInterface> TaskFactory::create(const TaskDef* task) {
   } else {
     return nullptr;
   }
-
 }
 
-} // namespace webmonitor
+} //namespace node
+
+} //namespace webmonitor

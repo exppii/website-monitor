@@ -10,10 +10,15 @@
 namespace webmonitor {
 
 class TaskDef;
+
+namespace node {
+
 class TaskInterface;
 
 std::shared_ptr<TaskInterface> DNSTaskSharedPtr(const TaskDef*);
 
-}
+} //namespace node
+
+} //namspace webmonitor
 
 #endif //WEBSITEMONITOR_NODE_DNS_TASK_H_
