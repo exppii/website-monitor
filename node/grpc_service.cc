@@ -54,24 +54,7 @@ struct Info {
   GetJobRequest req{};
 };
 
-size_t parser_task_to_map(const GetJobResponse &resp,
-                          std::map<int64_t, TaskSharedPtr> *task_map) {
-  TaskFactory factory;
 
-  auto tmap = resp.task_map();
-  std::for_each(tmap.cbegin(), tmap.cend(),
-                [&factory,&task_map](const google::protobuf::pair<int64_t, TaskDef> &raw) {
-
-                  auto task = factory.create(&raw.second);
-                  if(task) {
-                    task_map->insert({raw.first,task});
-                  }
-
-                });
-
-  return task_map->size();
-
-}
 
 } //namespace
 
@@ -92,6 +75,10 @@ private:
   void _fetchjob_thread();
 
   void _report_thread();
+
+  size_t _parser_task_to_map(const GetJobResponse &resp,
+                             std::map<int64_t, TaskSharedPtr> *task_map);
+
 
 private:
 
@@ -167,8 +154,8 @@ void GrpcService::_fetchjob_thread() {
     }
     std::map<int64_t, TaskSharedPtr> task_maps{};
 
-    if (parser_task_to_map(resp, &task_maps) > 0) {
-      _logger->debug("fetch {} tasks, now push to taskmanager.",
+    if (_parser_task_to_map(resp, &task_maps) > 0) {
+      _logger->info("fetch {} tasks, now push to taskmanager.",
                      task_maps.size());
       _task_manager->add_task(task_maps);
     }
@@ -176,6 +163,23 @@ void GrpcService::_fetchjob_thread() {
 
   }
 }
+
+size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
+                                        std::map<int64_t, TaskSharedPtr> *task_map) {
+    TaskFactory factory;
+    for(const auto& raw : resp.task_map()) {
+      auto task = factory.create(&raw.second);
+      if(task) {
+        task_map->insert({raw.first,task});
+        _logger->debug("success add task: {} to map.", raw.first);
+      } else {
+        _logger->error("parser task: {} failed. ", raw.first);
+      }
+    }
+    return task_map->size();
+
+}
+
 
 std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(
     const TaskManagerInterface *manager, const Options *options) {
