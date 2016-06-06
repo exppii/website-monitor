@@ -6,13 +6,17 @@
 
 #include <thread>
 #include <chrono>
+#include <map>
+#include <vector>
 #include <grpc++/grpc++.h>
 
 #include "node/grpc_remote_node.h"
+#include "node/task/task_factory.h"
 #include "node/logger.h"
+#include "node/taskmanager_service.h"
 
 #include "common/options.h"
-#include "common/type_safe_queue.h"
+
 
 #if __cplusplus < 201402L
 #include "common/utils.h" //using custom make_uniue
@@ -23,6 +27,7 @@ using std::make_unique;
 using std::unique_ptr;
 using std::shared_ptr;
 using std::vector;
+using std::map;
 using std::thread;
 using std::chrono::seconds;
 
@@ -30,17 +35,15 @@ namespace webmonitor {
 
 namespace node {
 
-
 namespace {
 
 struct Info {
 
-  explicit Info(const Options* option) {
+  explicit Info(const Options *option) {
     fetch_frequency = option->get_fetchtask_frequency() * 60;
     report_frequency = option->get_report_frequency() * 60;
 
     auto info = req.mutable_node();
-
     info->set_id(option->get_node_id());
     info->set_name(option->get_node_name());
 
@@ -51,8 +54,26 @@ struct Info {
   GetJobRequest req{};
 };
 
+size_t parser_task_to_map(const GetJobResponse &resp,
+                          std::map<int64_t, TaskSharedPtr> *task_map) {
+  TaskFactory factory;
+
+  auto tmap = resp.task_map();
+  std::for_each(tmap.cbegin(), tmap.cend(),
+                [&factory,&task_map](const google::protobuf::pair<int64_t, TaskDef> &raw) {
+
+                  auto task = factory.create(&raw.second);
+                  if(task) {
+                    task_map->insert({raw.first,task});
+                  }
+
+                });
+
+  return task_map->size();
+
 }
 
+} //namespace
 
 class GrpcService : public ServiceInterface {
 
@@ -76,7 +97,7 @@ private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
-  bool _running {false};
+  bool _running{false};
 
   vector<thread> _threads{};
 
@@ -88,72 +109,78 @@ private:
 
   std::unique_ptr<NodeInterface> _grpc_node{nullptr};
 
-
-
 };
 
 GrpcService::GrpcService(const TaskManagerInterface *manager,
                          const Options *options)
     : _task_manager(manager), _info(options) {
   _logger->info("Init Node Service...");
-
   const auto url = options->get_taskserver_addr() +
                    std::to_string(options->get_taskserver_port());
 
+  _logger->info("create insecure grpc channel to task server.");
   _channel = grpc::CreateChannel(url, grpc::InsecureChannelCredentials());
 
   _grpc_node = GrpcNodePtr(_channel);
 
-
-
 }
 
 void GrpcService::start() {
-  _logger->info("start GrpcService main thread...");
-
-  _threads.push_back(thread(&GrpcService::_fetchjob_thread,this));
-  _threads.push_back(thread(&GrpcService::_report_thread,this));
+  _logger->info("start GrpcService fetchjob thread...");
+  _threads.push_back(thread(&GrpcService::_fetchjob_thread, this));
+  _logger->info("start GrpcService report thread...");
+  _threads.push_back(thread(&GrpcService::_report_thread, this));
 
 }
 
 void GrpcService::stop() {
   _logger->info("shutdown all GrpcService threads...");
   _running = false;
-  for (auto& t : _threads) {
-    if(t.joinable()) t.join();
+  for (auto &t : _threads) {
+    if (t.joinable()) t.join();
   }
 
 }
 
 void GrpcService::_report_thread() {
 
- while (_running) {
+  while (_running) {
+    _logger->debug("report status to task server.");
+    //TODO do report
 
-   //TODO do report
-
-   std::this_thread::sleep_for(seconds(_info.report_frequency));
- }
+    std::this_thread::sleep_for(seconds(_info.report_frequency));
+  }
 
 }
 
 
 void GrpcService::_fetchjob_thread() {
   while (_running) {
-
-    //TODO do fetch
-
+    _logger->debug("fetch tasks from task server.");
     std::this_thread::sleep_for(seconds(_info.fetch_frequency));
+    //TODO do fetch
+    GetJobResponse resp{};
+    auto status = _grpc_node->get_job(_info.req, &resp);
+    if (!status.ok()) {
+      _logger->error("fetch job failed: ", status.error_message());
+      continue;
+    }
+    std::map<int64_t, TaskSharedPtr> task_maps{};
+
+    if (parser_task_to_map(resp, &task_maps) > 0) {
+      _logger->debug("fetch {} tasks, now push to taskmanager.",
+                     task_maps.size());
+      _task_manager->add_task(task_maps);
+    }
+
+
   }
 }
-
-
-
 
 std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(
     const TaskManagerInterface *manager, const Options *options) {
   return make_unique<GrpcService>(manager, options);
 }
-
 
 } //namspace node
 

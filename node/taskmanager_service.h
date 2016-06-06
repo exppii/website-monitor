@@ -18,13 +18,17 @@ namespace node {
 
 class TaskInterface;
 class DataProcServiceInterface;
+
 using TaskSharedPtr = std::shared_ptr<TaskInterface>;
+
+//using TaskMapUniquePtr = std::unique_ptr< std::map<int64_t, TaskSharedPtr > >;
+
 class TaskManagerInterface : public ServiceInterface {
 
 public:
   virtual ~TaskManagerInterface(){}
 
-  virtual bool add_task(const std::map<int64_t,TaskSharedPtr>& ) = 0;
+  virtual bool add_task(const std::map<int64_t, TaskSharedPtr>& ) const = 0;
 
 };
 

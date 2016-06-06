@@ -28,25 +28,25 @@ public:
 
   explicit NodeTaskManager(const DataProcServiceInterface* proc):_data_proc(proc){}
 
-  bool add_task(const std::map<int64_t,TaskSharedPtr>& ) override;
+  bool add_task(const std::map<int64_t, TaskSharedPtr>& ) const override;
   void start() override ;
   void stop() override ;
 
 private:
 
   const DataProcServiceInterface* _data_proc;
-  std::map<int64_t,TaskSharedPtr> _task_map;
+  std::unique_ptr<std::map<int64_t,TaskSharedPtr>> _task_map{make_unique<std::map<int64_t,TaskSharedPtr>>()};
 
 };
 
-bool NodeTaskManager::add_task(const std::map<int64_t,TaskSharedPtr>& task_map) {
+bool NodeTaskManager::add_task(const std::map<int64_t, TaskSharedPtr>&  task_map) const {
 
   //remove same task in old map
-  for(auto it = _task_map.begin();it != _task_map.end();) {
-    task_map.find(it->first) != task_map.end() ? it = _task_map.erase(it) : ++it;
+  for(auto it = _task_map->begin();it != _task_map->end();) {
+    task_map.find(it->first) != task_map.end() ? it = _task_map->erase(it) : ++it;
   }
   //add new tasks to old maps
-  _task_map.insert(task_map.cbegin(),task_map.cend());
+  _task_map->insert(task_map.cbegin(),task_map.cend());
   return false;
 }
 
