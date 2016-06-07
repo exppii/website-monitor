@@ -36,7 +36,7 @@ public:
         _grpc_service(
             GrpcServiceUniquePtr(options, _data_proc.get(), _task_manager.get()
             )) {
-    _logger->info("Init NodeServer...");
+    _logger->info("NodeServer is init finined.");
   }
 
   void start() override;

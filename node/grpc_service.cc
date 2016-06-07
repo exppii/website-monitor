@@ -42,8 +42,8 @@ namespace {
 struct Info {
 
   explicit Info(const Options *option) {
-    fetch_frequency = option->get_fetchtask_frequency() * 60;
-    report_frequency = option->get_report_frequency() * 60;
+    fetch_frequency = option->get_fetchtask_frequency() * 6;
+    report_frequency = option->get_report_frequency() * 6;
 
     auto info = req.mutable_node();
     info->set_id(option->get_node_id());
@@ -86,7 +86,7 @@ private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
-  bool _running{false};
+  bool _running{true};
 
   vector<thread> _threads{};
 
@@ -103,12 +103,12 @@ private:
 GrpcService::GrpcService(const Options *options,
                          DataProcServiceInterface *dataproc,
                          TaskManagerInterface *manager)
-    : _info(options), _data_proc(dataproc) ,_task_manager(manager) {
-  _logger->info("Init Node Service...");
-  const auto url = options->get_taskserver_addr() +
+    : _info(options), _data_proc(dataproc), _task_manager(manager) {
+  _logger->info("Init grpc service...");
+  const auto url = options->get_taskserver_addr() + ":" +
                    std::to_string(options->get_taskserver_port());
 
-  _logger->info("create insecure grpc channel to task server.");
+  _logger->info("Create insecure grpc channel to task server: {}. ", url);
   _channel = grpc::CreateChannel(url, grpc::InsecureChannelCredentials());
 
   _grpc_node = GrpcNodePtr(_channel);
@@ -116,6 +116,7 @@ GrpcService::GrpcService(const Options *options,
 }
 
 void GrpcService::start() {
+  _running = true;
   _logger->info("start GrpcService fetchjob thread...");
   _threads.push_back(thread(&GrpcService::_fetchjob_thread, this));
   _logger->info("start GrpcService report thread...");
@@ -133,7 +134,7 @@ void GrpcService::stop() {
 }
 
 void GrpcService::_report_thread() {
-
+  _logger->info("Current report frequency: {}", _info.report_frequency);
   while (_running) {
     _logger->debug("report status to task server.");
     //TODO do report
@@ -145,6 +146,7 @@ void GrpcService::_report_thread() {
 
 
 void GrpcService::_fetchjob_thread() {
+  _logger->info("current fetch frequency: {}. ", _info.fetch_frequency);
   while (_running) {
     _logger->debug("fetch tasks from task server.");
     std::this_thread::sleep_for(seconds(_info.fetch_frequency));
@@ -152,7 +154,9 @@ void GrpcService::_fetchjob_thread() {
     GetJobResponse resp{};
     auto status = _grpc_node->get_job(_info.req, &resp);
     if (!status.ok()) {
-      _logger->error("fetch job failed: ", status.error_message());
+      _logger->error("Fetch task failed, error code: {} ,error message: {} ",
+                     status.error_code(), status.error_message());
+      //TODO handle the error
       continue;
     }
 
@@ -172,7 +176,7 @@ size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
                                         std::map<int64_t, TaskSharedPtr> *task_map) {
   TaskFactory factory;
   for (const auto &raw : resp.task_map()) {
-    auto task = factory.create(&raw.second,_data_proc);
+    auto task = factory.create(&raw.second, _data_proc);
     if (task) {
       task_map->insert({raw.first, task});
       _logger->debug("success add task: {} to map.", raw.first);

@@ -32,9 +32,11 @@ class NodeDataProcService : public DataProcServiceInterface {
 public:
 
   explicit NodeDataProcService(const Options* option) {
-
+      _logger->info("Init data process service...");
       //_proc_list.push_back(CompressProcUniuePtr());
+      _logger->info("push ZMQ proc handle to proc list.");
       _proc_list.push_back(ZMQProcUniuePtr(option->get_upload_addr(),option->get_upload_port()));
+      _logger->debug("finined init data process service.");
   }
 
   bool add_data(const std::string& data) override;
@@ -67,8 +69,8 @@ bool NodeDataProcService::add_data(const std::string & data) {
 }
 
 void NodeDataProcService::start() {
-  _logger->info("start NodeDataProcService main thread...");
-
+  _logger->info("start DataProcService work thread...");
+  _running = true;
   _thread.reset(new thread(&NodeDataProcService::_work_thread,this));
 }
 
@@ -85,6 +87,8 @@ void NodeDataProcService::_work_thread() {
     std::string data{};
     if(_queue.wait_and_pop(data,3)) {
       for (const auto& proc : _proc_list) proc->proc(&data);
+    } else {
+      _logger->debug("no data in proc service...");
     }
   }
 }

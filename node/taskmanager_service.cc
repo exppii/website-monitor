@@ -32,7 +32,9 @@ namespace node {
 class NodeTaskManager : public TaskManagerInterface {
 public:
 
-  explicit NodeTaskManager() { }
+  explicit NodeTaskManager() {
+    _logger->info("Init task manager service...");
+  }
 
   bool add_task(const std::map<int64_t, TaskSharedPtr> &) override;
 
@@ -93,10 +95,10 @@ void NodeTaskManager::stop() {
 }
 
 void NodeTaskManager::_work_thread() {
-
+  _logger->info("init async result vector for task.");
   std::vector<std::future<bool> > task_result;
   while (_running) {
-
+    _logger->debug("try move reserved task to regular list.");
     _mv_reserved_to_regular();
     //drop expired task
     for (auto t = _regular_task->begin(); t != _regular_task->end();) {

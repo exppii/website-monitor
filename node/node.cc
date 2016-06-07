@@ -19,13 +19,17 @@ int main(int argc, char const *argv[]) {
   mkdir_if_not_exists("../logs");
 
   //init log config
-  node::init_logger(opt.get_log_config_path());
-
-  auto server = node::NodeServerUniquePtr(&opt);
-
+  //node::init_logger(opt.get_log_config_path());
+  //test code
+  auto outlog = spdlog::stdout_logger_mt(node::NODE_TAG);
+  outlog->set_level(spdlog::level::debug);
+  //test code
   auto logger = spdlog::get(node::NODE_TAG);
 
   logger->info("current version: 0.1.0");
+
+  auto server = node::NodeServerUniquePtr(&opt);
+
   try {
     server->start();
 
