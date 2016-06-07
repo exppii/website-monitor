@@ -47,7 +47,8 @@ PingTask::PingTask(const TaskDef *task, DataProcServiceInterface *dataproc)
 
 //TODO
 bool PingTask::run() {
-  printf("run ping task");
+  const std::string data = "run ping task.";
+  _dataproc->add_data(data);
   return false;
 }
 

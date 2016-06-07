@@ -46,7 +46,8 @@ DNSTask::DNSTask(const TaskDef *task, DataProcServiceInterface *dataproc)
 
 //TODO
 bool DNSTask::run() {
-  printf("run dns task");
+  const std::string data = "run dns task.";
+  _dataproc->add_data(data);
   return false;
 }
 
