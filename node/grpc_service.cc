@@ -152,11 +152,12 @@ void GrpcService::_fetchjob_thread() {
       _logger->error("fetch job failed: ", status.error_message());
       continue;
     }
-    std::map<int64_t, TaskSharedPtr> task_maps{};
 
-    if (_parser_task_to_map(resp, &task_maps) > 0) {
+    const auto task_maps = std::make_shared<std::map<int64_t, TaskSharedPtr> >();
+
+    if (_parser_task_to_map(resp, task_maps.get()) > 0) {
       _logger->info("fetch {} tasks, now push to taskmanager.",
-                     task_maps.size());
+                     task_maps->size());
       _task_manager->add_task(task_maps);
     }
 
