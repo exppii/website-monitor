@@ -23,6 +23,8 @@ public:
 
   virtual bool varify_task_content() const = 0;
 
+  virtual bool is_expired() const = 0;
+
 protected:
 
   std::time_t _last_run_time{std::time(nullptr)};

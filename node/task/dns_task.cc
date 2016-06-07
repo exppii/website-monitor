@@ -22,6 +22,8 @@ public:
   void run() override;
 
   bool varify_task_content() const override;
+
+  bool is_expired() const override;
 private:
 
   TaskDef _task_def;
@@ -41,6 +43,10 @@ void DNSTask::run() {
 //TODO
 bool DNSTask::varify_task_content() const {
   return false;
+}
+
+bool DNSTask::is_expired() const {
+  return _task_def.status() == TaskDef::EXPIRE;
 }
 
 

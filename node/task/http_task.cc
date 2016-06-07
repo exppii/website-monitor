@@ -28,6 +28,8 @@ public:
 
   bool varify_task_content() const override;
 
+  bool is_expired() const override;
+
 private:
 
   bool _send_result(const std::string& result);
@@ -64,6 +66,10 @@ bool HttpTask::_send_result(const std::string &result) {
 
   printf(result.c_str());
   return false;
+}
+
+bool HttpTask::is_expired() const {
+  return _task_def.status() == TaskDef::EXPIRE;
 }
 
 

@@ -22,6 +22,8 @@ public:
 
   bool varify_task_content() const override;
 
+  bool is_expired() const override;
+
 private:
 
 
@@ -44,6 +46,11 @@ void PingTask::run() {
 bool PingTask::varify_task_content() const {
   return false;
 }
+
+bool PingTask::is_expired() const {
+  return _task_def.status() == TaskDef::EXPIRE;
+}
+
 
 std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef* task) {
   return std::make_shared<PingTask>(task);
