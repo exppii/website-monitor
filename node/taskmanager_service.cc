@@ -7,8 +7,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
-
-#include "node/task/task_interface.h"
+#include <future>
 
 #include "node/logger.h"
 
@@ -19,10 +18,12 @@ using std::make_unique;
 #endif
 
 using std::vector;
+using std::map;
 using std::string;
 using std::shared_ptr;
 using std::thread;
 using std::mutex;
+using std::make_shared;
 
 namespace webmonitor {
 
@@ -31,53 +32,114 @@ namespace node {
 class NodeTaskManager : public TaskManagerInterface {
 public:
 
-  explicit NodeTaskManager(const DataProcServiceInterface* proc):_data_proc(proc){}
+  explicit NodeTaskManager() { }
 
-  bool add_task(const TaskMapSharedPtr& ) const override;
-  void start() override ;
-  void stop() override ;
+  bool add_task(const std::map<int64_t, TaskSharedPtr> &) override;
 
-private:
+  void start() override;
 
-  void work_thread();
+  void stop() override;
 
 private:
+
+  void _work_thread();
+
+  void _mv_reserved_to_regular();
+
+  void _do_assign_task(std::vector<std::future<bool>>*);
+
+private:
+  using TaskMapUniquePtr = std::unique_ptr<std::map<int64_t, TaskSharedPtr>>;
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
   bool _running{true};
 
-  std::vector<thread> _threads;
-  mutex _mtx;
+  std::unique_ptr<thread> _thread{nullptr};
+  std::mutex _reserve_mtx;
+  std::mutex _regular_mtx;
 
-  const DataProcServiceInterface* _data_proc;
-  std::unique_ptr<std::map<int64_t,TaskSharedPtr>> _task_map{make_unique<std::map<int64_t,TaskSharedPtr>>()};
+  TaskMapUniquePtr _reserve_task{make_unique<map<int64_t, TaskSharedPtr>>()};
 
+  TaskMapUniquePtr _regular_task{make_unique<map<int64_t, TaskSharedPtr>>()};
 
 };
 
-bool NodeTaskManager::add_task(const TaskMapSharedPtr&  task_map) const {
-
-  // //remove same task in old map
-  // for(auto it = _task_map->begin();it != _task_map->end();) {
-  //   task_map.find(it->first) != task_map.end() ? it = _task_map->erase(it) : ++it;
-  // }
-  // //add new tasks to old maps
-  // _task_map->insert(task_map.cbegin(),task_map.cend());
+bool NodeTaskManager::add_task(const std::map<int64_t, TaskSharedPtr> &tasks) {
+  std::unique_lock<mutex> mlock(_reserve_mtx);
+  _logger->debug("remove same task in reserve task list.");
+  for (auto t = _reserve_task->begin(); t != _reserve_task->end();) {
+    tasks.find(t->first) != tasks.end() ? t = _reserve_task->erase(t) : ++t;
+  }
+  _logger->info("add new tasks to reserve task list");
+  _reserve_task->insert(tasks.cbegin(), tasks.cend());
   return false;
 }
 
 void NodeTaskManager::start() {
+  _logger->info("start task manager thread...");
+
+  _running = true;
+
+  _thread.reset(new thread(&NodeTaskManager::_work_thread, this));
 
 }
 
 void NodeTaskManager::stop() {
+  _running = false;
+
+  if (_thread && _thread->joinable()) _thread->join();
+  _logger->info("task manager thread stopped.");
+}
+
+void NodeTaskManager::_work_thread() {
+
+  std::vector<std::future<bool> > task_result;
+  while (_running) {
+
+    _mv_reserved_to_regular();
+    //drop expired task
+    for (auto t = _regular_task->begin(); t != _regular_task->end();) {
+      t->second->is_expired() ? t = _regular_task->erase(t) : ++t;
+    }
+
+    _do_assign_task(&task_result);
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+  }
+
+}
+
+//mv reserve_task
+void NodeTaskManager::_mv_reserved_to_regular() {
+  std::unique_lock<mutex> mlock(_reserve_mtx);
+  //remove task if id is contained in reserved task
+  for (auto t = _regular_task->begin(); t != _regular_task->end();) {
+    _reserve_task->find(t->first) != _reserve_task->end()
+    ? t = _regular_task->erase(t) : ++t;
+  }
+  //mv new tasks to old maps
+  _regular_task->insert(_reserve_task->cbegin(), _reserve_task->cend());
+  _reserve_task->clear();
+}
+
+void NodeTaskManager::_do_assign_task(std::vector<std::future<bool>>* result) {
+  std::time_t now = std::time(nullptr);
+  for(auto& task : *_regular_task) {
+    if(task.second->reach_time(now)) {
+      result->push_back(std::async(std::launch::async,&TaskInterface::run, task.second.get()));
+    }
+  }
+
+  result->erase(std::remove_if(result->begin(), result->end(), [](std::future<bool> &f) {
+    return (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
+  }), result->end());
 
 }
 
 
-std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr(const DataProcServiceInterface* proc) {
-  return make_unique<NodeTaskManager>(proc);
+std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr() {
+  return make_unique<NodeTaskManager>();
 }
 
 } //namespace node

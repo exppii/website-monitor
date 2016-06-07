@@ -4,6 +4,8 @@
 
 #include "node/task/task_factory.h"
 
+#include "node/data_proc_service.h"
+
 #include "node/task/http_task.h"
 #include "node/task/dns_task.h"
 #include "node/task/ping_task.h"
@@ -16,20 +18,21 @@ namespace webmonitor {
 
 namespace node {
 
-std::shared_ptr<TaskInterface> TaskFactory::create(const TaskDef* task) {
+std::shared_ptr<TaskInterface>
+TaskFactory::create(const TaskDef *task, DataProcServiceInterface *dataproc) {
   std::shared_ptr<TaskInterface> interface = nullptr;
 
   switch (task->type()) {
     case TaskDef::HTTP: {
-      interface = HttpTaskSharedPtr(task);
+      interface = HttpTaskSharedPtr(task, dataproc);
       break;
     }
     case TaskDef::PING: {
-      interface = PingTaskSharedPtr(task);
+      interface = PingTaskSharedPtr(task, dataproc);
       break;
     }
     case TaskDef::DNS: {
-      interface = PingTaskSharedPtr(task);
+      interface = PingTaskSharedPtr(task, dataproc);
       break;
     }
     case TaskDef::UNKNOWN:
@@ -37,7 +40,7 @@ std::shared_ptr<TaskInterface> TaskFactory::create(const TaskDef* task) {
       break;
   }
 
-  if(interface && interface->varify_task_content()) {
+  if (interface && interface->varify_task_content()) {
     return interface;
   } else {
     return nullptr;

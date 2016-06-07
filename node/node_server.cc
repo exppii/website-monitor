@@ -30,10 +30,12 @@ class NodeServer : public NodeServerInterface {
 
 public:
 
-  NodeServer(const Options* options)
-      :_data_proc(DataProcServiceUniquePtr(options)),
-       _task_manager(TaskManagerUniquePtr(_data_proc.get())),
-       _grpc_service(GrpcServiceUniquePtr(_task_manager.get(),options)){
+  NodeServer(const Options *options)
+      : _data_proc(DataProcServiceUniquePtr(options)),
+        _task_manager(TaskManagerUniquePtr()),
+        _grpc_service(
+            GrpcServiceUniquePtr(options, _data_proc.get(), _task_manager.get()
+            )) {
     _logger->info("Init NodeServer...");
   }
 
@@ -76,7 +78,8 @@ int NodeServer::wait_shutdown() {
 }
 
 
-std::unique_ptr<NodeServerInterface> NodeServerUniquePtr(const Options* options) {
+std::unique_ptr<NodeServerInterface> NodeServerUniquePtr(
+    const Options *options) {
   return make_unique<NodeServer>(options);
 }
 

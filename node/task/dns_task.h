@@ -15,7 +15,10 @@ namespace node {
 
 class TaskInterface;
 
-std::shared_ptr<TaskInterface> DNSTaskSharedPtr(const TaskDef*);
+class DataProcServiceInterface;
+
+std::shared_ptr<TaskInterface> DNSTaskSharedPtr(const TaskDef *,
+                                                DataProcServiceInterface *);
 
 } //namespace node
 

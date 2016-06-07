@@ -14,11 +14,13 @@ class TaskDef;
 
 namespace node {
 
+class DataProcServiceInterface;
+
 class TaskFactory {
 public:
   TaskFactory(){}
 
-  std::shared_ptr<TaskInterface> create(const TaskDef*);
+  std::shared_ptr<TaskInterface> create(const TaskDef*, DataProcServiceInterface *);
 
 };
 }

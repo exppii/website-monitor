@@ -15,6 +15,8 @@
 #include "node/logger.h"
 #include "node/taskmanager_service.h"
 
+#include "node/data_proc_service.h"
+
 #include "common/options.h"
 
 
@@ -55,7 +57,6 @@ struct Info {
 };
 
 
-
 } //namespace
 
 class GrpcService : public ServiceInterface {
@@ -63,8 +64,9 @@ class GrpcService : public ServiceInterface {
 public:
   using ServiceInterface::ServiceInterface;
 
-  explicit GrpcService(const TaskManagerInterface *manager,
-                       const Options *options);
+  explicit GrpcService(const Options *options,
+                       DataProcServiceInterface *dataproc,
+                       TaskManagerInterface *manager);
 
   void start() override;
 
@@ -88,9 +90,9 @@ private:
 
   vector<thread> _threads{};
 
-  const TaskManagerInterface *_task_manager;
-
   Info _info;
+  DataProcServiceInterface *_data_proc;
+  TaskManagerInterface *_task_manager;
 
   shared_ptr<::grpc::Channel> _channel{nullptr};
 
@@ -98,9 +100,10 @@ private:
 
 };
 
-GrpcService::GrpcService(const TaskManagerInterface *manager,
-                         const Options *options)
-    : _task_manager(manager), _info(options) {
+GrpcService::GrpcService(const Options *options,
+                         DataProcServiceInterface *dataproc,
+                         TaskManagerInterface *manager)
+    : _info(options), _data_proc(dataproc) ,_task_manager(manager) {
   _logger->info("Init Node Service...");
   const auto url = options->get_taskserver_addr() +
                    std::to_string(options->get_taskserver_port());
@@ -153,11 +156,11 @@ void GrpcService::_fetchjob_thread() {
       continue;
     }
 
-    const auto task_maps = std::make_shared<std::map<int64_t, TaskSharedPtr> >();
+    std::map<int64_t, TaskSharedPtr> task_maps{};
 
-    if (_parser_task_to_map(resp, task_maps.get()) > 0) {
+    if (_parser_task_to_map(resp, &task_maps) > 0) {
       _logger->info("fetch {} tasks, now push to taskmanager.",
-                     task_maps->size());
+                    task_maps.size());
       _task_manager->add_task(task_maps);
     }
 
@@ -167,24 +170,26 @@ void GrpcService::_fetchjob_thread() {
 
 size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
                                         std::map<int64_t, TaskSharedPtr> *task_map) {
-    TaskFactory factory;
-    for(const auto& raw : resp.task_map()) {
-      auto task = factory.create(&raw.second);
-      if(task) {
-        task_map->insert({raw.first,task});
-        _logger->debug("success add task: {} to map.", raw.first);
-      } else {
-        _logger->error("parser task: {} failed. ", raw.first);
-      }
+  TaskFactory factory;
+  for (const auto &raw : resp.task_map()) {
+    auto task = factory.create(&raw.second,_data_proc);
+    if (task) {
+      task_map->insert({raw.first, task});
+      _logger->debug("success add task: {} to map.", raw.first);
+    } else {
+      _logger->error("parser task: {} failed. ", raw.first);
     }
-    return task_map->size();
+  }
+  return task_map->size();
 
 }
 
 
-std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(
-    const TaskManagerInterface *manager, const Options *options) {
-  return make_unique<GrpcService>(manager, options);
+std::unique_ptr<ServiceInterface>
+GrpcServiceUniquePtr(const Options *options,
+                     DataProcServiceInterface *dataproc,
+                     TaskManagerInterface *manager) {
+  return make_unique<GrpcService>(options, dataproc, manager);
 }
 
 } //namspace node

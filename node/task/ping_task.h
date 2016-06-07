@@ -14,7 +14,11 @@ class TaskDef;
 namespace node {
 
 class TaskInterface;
-std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef*);
+
+class DataProcServiceInterface;
+
+std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef *,
+                                                 DataProcServiceInterface *);
 
 } //namespace node
 

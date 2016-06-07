@@ -8,10 +8,12 @@
 
 #include "node/task/task_interface.h"
 #include "protos/task_content.pb.h"
-#include "protos/master_service.pb.h"
 
+#include "node/data_proc_service.h"
 #include "node/response/curl_response.h"
 #include "node/curl/curl_lib.h"
+#include "protos/master_service.pb.h"
+
 
 using std::string;
 
@@ -22,9 +24,11 @@ class HttpTask :public TaskInterface {
 public:
 
 
-  explicit HttpTask(const TaskDef*);
+  explicit HttpTask(const TaskDef *, DataProcServiceInterface *dataproc);
 
-  void run() override;
+  bool run() override ;
+
+  bool reach_time(const std::time_t&) override;
 
   bool varify_task_content() const override;
 
@@ -38,23 +42,28 @@ private:
 
   HTTP_CONTENT _content;
 
+  DataProcServiceInterface *_dataproc;
+
 };
 
 
-HttpTask::HttpTask(const TaskDef* task):_task_def(*task) {
+HttpTask::HttpTask(const TaskDef *task, DataProcServiceInterface *dataproc)
+    : _task_def(*task), _dataproc(dataproc) {
   if(task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
-void HttpTask::run() {
+//TODO
+bool HttpTask::run() {
 
-
+  auto ret = false;
   node::CurlResponse resp;
 
   curl_get(_task_def.dest(),&resp);
 
-  _send_result(resp.dump());
+  ret = _send_result(resp.dump());
 
   printf("run http task, match content: %s", _content.match_content().c_str());
+  return ret;
 }
 
 //TODO parser http is valid
@@ -64,17 +73,24 @@ bool HttpTask::varify_task_content() const {
 
 bool HttpTask::_send_result(const std::string &result) {
 
-  printf(result.c_str());
-  return false;
+  printf("send data: %s", result.c_str());
+  return _dataproc->add_data(result);
+
 }
 
 bool HttpTask::is_expired() const {
   return _task_def.status() == TaskDef::EXPIRE;
 }
 
+bool HttpTask::reach_time(const std::time_t & now) {
+  auto dif = std::difftime(now, _last_run_time);
+  return dif > _task_def.frequency();
+}
 
-std::shared_ptr<TaskInterface> HttpTaskSharedPtr(const TaskDef* task) {
-  return std::make_shared<HttpTask>(task);
+
+std::shared_ptr<TaskInterface>
+HttpTaskSharedPtr(const TaskDef *task, DataProcServiceInterface *dataproc) {
+  return std::make_shared<HttpTask>(task, dataproc);
 }
 
 } //namespace node

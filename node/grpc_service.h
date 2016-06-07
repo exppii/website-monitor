@@ -16,8 +16,11 @@ namespace node {
 
 class TaskManagerInterface;
 
-std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(
-    const TaskManagerInterface *, const Options *);
+class DataProcServiceInterface;
+
+std::unique_ptr<ServiceInterface> GrpcServiceUniquePtr(const Options *,
+                         DataProcServiceInterface *,
+                         TaskManagerInterface *);
 
 } //namespace node
 

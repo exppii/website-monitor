@@ -25,7 +25,9 @@ public:
 
 //TODO
 bool ZMQProc::proc(std::string* data) {
-  return false;
+
+  printf ("zmq will handle the data: %s",data->c_str());
+  return true;
 }
 
 DataProcInterfacePtr ZMQProcUniuePtr(const std::string& url, const int port){

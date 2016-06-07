@@ -21,18 +21,18 @@ class DataProcServiceInterface;
 
 using TaskSharedPtr = std::shared_ptr<TaskInterface>;
 
-using TaskMapSharedPtr = std::shared_ptr< std::map<int64_t, TaskSharedPtr > >;
+//using TaskMapSharedPtr = std::shared_ptr< std::map<int64_t, TaskSharedPtr > >;
 
 class TaskManagerInterface : public ServiceInterface {
 
 public:
   virtual ~TaskManagerInterface(){}
 
-  virtual bool add_task(const TaskMapSharedPtr& ) const = 0;
+  virtual bool add_task(const std::map<int64_t, TaskSharedPtr>& ) = 0;
 
 };
 
-std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr(const DataProcServiceInterface*);
+std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr();
 
 } //namespace node
 

@@ -7,18 +7,23 @@
 #include "protos/master_service.pb.h"
 #include "protos/task_content.pb.h"
 
+#include "node/data_proc_service.h"
+
 #include "common/json.hpp"
+
 using std::string;
 namespace webmonitor {
 
 
 namespace node {
-class PingTask :public TaskInterface {
+class PingTask : public TaskInterface {
 public:
 
-  explicit PingTask(const TaskDef*);
+  explicit PingTask(const TaskDef *, DataProcServiceInterface *dataproc);
 
-  void run() override;
+  bool run() override;
+
+  bool reach_time(const std::time_t &) override;
 
   bool varify_task_content() const override;
 
@@ -31,15 +36,19 @@ private:
 
   PING_CONTENT _content;
 
+  DataProcServiceInterface *_dataproc;
+
 };
 
-PingTask::PingTask(const TaskDef *task):_task_def(*task) {
-  if(task->content().Is<PING_CONTENT>()) task->content().UnpackTo(&_content);
+PingTask::PingTask(const TaskDef *task, DataProcServiceInterface *dataproc)
+    : _task_def(*task), _dataproc(dataproc) {
+  if (task->content().Is<PING_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
-
-void PingTask::run() {
-  printf("run ping task, taskid: %lld", 100);
+//TODO
+bool PingTask::run() {
+  printf("run ping task");
+  return false;
 }
 
 //TODO
@@ -51,9 +60,15 @@ bool PingTask::is_expired() const {
   return _task_def.status() == TaskDef::EXPIRE;
 }
 
+bool PingTask::reach_time(const std::time_t &now) {
+  auto dif = std::difftime(now, _last_run_time);
+  return dif > _task_def.frequency();
+}
 
-std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef* task) {
-  return std::make_shared<PingTask>(task);
+
+std::shared_ptr<TaskInterface>
+PingTaskSharedPtr(const TaskDef *task, DataProcServiceInterface *dataproc) {
+  return std::make_shared<PingTask>(task, dataproc);
 }
 
 } //namespace node

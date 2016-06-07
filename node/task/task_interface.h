@@ -19,15 +19,25 @@ public:
   virtual ~TaskInterface() { }
 
   //run task once
-  virtual void run() = 0;
+  virtual bool run() = 0;
+
+  virtual bool reach_time(const std::time_t&) = 0;
+
 
   virtual bool varify_task_content() const = 0;
 
   virtual bool is_expired() const = 0;
 
+  bool is_running() const { return _running;}
+
+  void set_running_status(const std::time_t& now) {
+    _last_run_time = now; _running = true;
+  }
+
 protected:
 
   std::time_t _last_run_time{std::time(nullptr)};
+  bool _running{false};
 
 };
 
