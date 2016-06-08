@@ -44,14 +44,7 @@ message TaskDef {
 
 //web client sent this job to taskserver
 message JobDef {
-    enum STATUS {
-        UNKNOWN = 0;
-        RUNNING = 1;
-        STOPPED = 2;
-        FAILED = 3;
-        EXPIRED = 4;
-    }
-    STATUS status = 1;
+    int64 id = 1;
     TaskDef task = 2;
     repeated int64 node_list = 3;
 }
@@ -67,7 +60,6 @@ message RespStatusDef {
     string message = 2;
 }
 
-
 message NodeStatusDef {
     enum STATUS {
         UNKNOWN = 0;
@@ -78,6 +70,18 @@ message NodeStatusDef {
     STATUS status = 1;
 }
 
+message JobStatusDef {
+    enum STATUS {
+        UNKNOWN = 0;
+        RUNNING = 1;
+        STOPPED = 2;
+        FAILED = 3;
+        EXPIRED = 4;
+    }
+    STATUS status = 1;
+    string message = 2;
+}
+
 message NodeDef {
     int64 id = 1;
     string name = 2;
@@ -85,8 +89,7 @@ message NodeDef {
 
 //create job
 message CreateJobRequest {
-    int64 job_id = 1;
-    JobDef job = 2;
+    JobDef job = 1;
 }
 
 message CreateJobResponse {
@@ -118,7 +121,8 @@ message ListJobStatusRequest {
 }
 
 message ListJobStatusResponse {
-    map<int64, JobDef.STATUS> jobs = 1;
+
+    map<int64, JobStatusDef> jobs = 1;
 }
 
 //list all worker status
