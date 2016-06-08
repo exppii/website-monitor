@@ -5,12 +5,10 @@
 #include "taskserver/grpc_master_service.h"
 
 #include <mutex>
-
-//#include <grpc++/alarm.h>
 #include <grpc++/server_builder.h>
 
 #include "taskserver/master.h"
-#include "common/rpc/async_service_interface.h"
+#include "taskserver/logger.h"
 #include "common/rpc/grpc_call.h"
 
 
@@ -29,7 +27,9 @@ namespace taskserver {
 class GrpcMasterService : public AsyncServiceInterface {
 public:
   GrpcMasterService(::grpc::ServerBuilder* builder) {
+    _logger->info("init grpc master service...");
     builder->RegisterService(&_service);
+    _logger->info("add completion queue .");
     _cq = builder->AddCompletionQueue().release();
   }
 
@@ -37,6 +37,7 @@ public:
     //  delete _shutdown_alarm;
     delete _cq;
     delete _master_impl;
+    _logger->info("grpc service has been shutdowned.");
   }
 
 #define ENQUEUE_REQUEST(method, supports_cancel)                              \
@@ -54,6 +55,7 @@ public:
 
   //TODO using multi thread and async
   void handle_grpc_loop() override {
+    _logger->info("push all resquse handle...");
     ENQUEUE_REQUEST(CreateJob, false);
     ENQUEUE_REQUEST(UpdateJob,true);
     ENQUEUE_REQUEST(DeleteJob,true);
@@ -63,6 +65,7 @@ public:
     ENQUEUE_REQUEST(ReportStatus, true);
     void* tag;
     bool ok;
+
     while (_cq->Next(&tag,&ok)) {
       UntypedCall<GrpcMasterService>::Tag* callback_tag =
           static_cast<UntypedCall<GrpcMasterService>::Tag*>(tag);
@@ -96,6 +99,8 @@ public:
 
 private:
 
+  std::shared_ptr<spdlog::logger> _logger{spdlog::get(SERVER_TAG)};
+
   template <class RequestMessage, class ResponseMessage>
   using MasterCall = Call<GrpcMasterService, MasterService::AsyncService,
       RequestMessage, ResponseMessage>;
@@ -107,6 +112,8 @@ private:
   // ::grpc::Alarm* _shutdown_alarm;
 
   std::mutex _mtx;
+
+
 
 private:
 

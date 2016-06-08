@@ -147,6 +147,7 @@ message GetJobResponse {
 //only used on node client
 message ReportStatusRequest {
     NodeStatusDef  status = 1;
+    int64 node_id = 2;
 }
 
 message ReportStatusResponse {

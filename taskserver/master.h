@@ -7,6 +7,7 @@
 
 
 #include "taskserver/local_cache_util.h"
+#include "taskserver/logger.h"
 #include "protos/master_service.pb.h"
 #include "protos/master_service.grpc.pb.h"
 
@@ -39,6 +40,7 @@ private:
 
 private:
 
+  std::shared_ptr<spdlog::logger> _logger{spdlog::get(SERVER_TAG)};
   LocalCachedUtil _cache_util;
 
 };

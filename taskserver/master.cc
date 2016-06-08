@@ -10,7 +10,7 @@ namespace taskserver {
 
 void Master::create_job(const CreateJobRequest *req, CreateJobResponse *resp,
                         Master::closure done) {
-
+  _logger->info("received one create job command.");
   auto res = resp->mutable_response();
   if(_cache_util.store_job(req->job())) {
     res->set_message("success save task to local.");
@@ -24,6 +24,7 @@ void Master::create_job(const CreateJobRequest *req, CreateJobResponse *resp,
 
 void Master::update_job(const UpdateJobRequest *req, UpdateJobResponse *resp,
                         Master::closure done) {
+  _logger->info("received one update job command.");
   auto res = resp->mutable_response();
   if(_cache_util.update_job(req->job())) {
     res->set_message("success update task to local.");
@@ -37,7 +38,7 @@ void Master::update_job(const UpdateJobRequest *req, UpdateJobResponse *resp,
 
 void Master::delete_job(const DeleteJobRequest *req, DeleteJobResponse *resp,
                         closure done) {
-
+  _logger->info("received one delete job command.");
   auto res = resp->mutable_response();
   if(_cache_util.del_job(req->job_id())) {
     res->set_message("success del task from local.");
@@ -51,13 +52,14 @@ void Master::delete_job(const DeleteJobRequest *req, DeleteJobResponse *resp,
 
 void Master::list_job_status(const ListJobStatusRequest *req,
                              ListJobStatusResponse *resp, closure done) {
-
+  _logger->info("received one list job command.");
   //TODO
   done(grpc::Status::OK);
 }
 
 void Master::list_node_status(const ListNodeStatusRequest *req,
                               ListNodeStatusResponse *resp, closure done) {
+  _logger->info("received one list node command.");
   //TODO
   done(grpc::Status::OK);
 }
@@ -68,6 +70,8 @@ void Master::list_node_status(const ListNodeStatusRequest *req,
 
 void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
                      closure done) {
+  _logger->info("received one get job command from node: {}", req->node_id());
+
   auto m = resp->mutable_task_map();
 
   if(_running_task_count_match_in_local(req->node_id(), req->running_task_count())) {
@@ -81,6 +85,7 @@ void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
 
 void Master::report_status(const ReportStatusRequest *req,
                            ReportStatusResponse *resp, closure done) {
+  _logger->info("received one get report command from node: {}", req->node_id());
   //TODO
   done(grpc::Status::OK);
 }
