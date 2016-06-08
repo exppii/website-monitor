@@ -5,11 +5,15 @@
 #ifndef WEBSITEMONITOR_TASKSERVER_MASTER_H_
 #define WEBSITEMONITOR_TASKSERVER_MASTER_H_
 
-#include "task_cache.h"
+
+#include "taskserver/local_cache_util.h"
 #include "protos/master_service.pb.h"
 #include "protos/master_service.grpc.pb.h"
 
+
 namespace webmonitor {
+
+namespace taskserver {
 
 class Master {
 
@@ -31,9 +35,15 @@ public:
 
 private:
 
-  TaskCache<JobDef> _local_cache;
+  bool _running_task_count_match_in_local(const int64_t& node_id, const int64_t& count);
+
+private:
+
+  LocalCachedUtil _cache_util;
 
 };
+
+} //namespace taskserver
 
 } // namespace webmonitor
 

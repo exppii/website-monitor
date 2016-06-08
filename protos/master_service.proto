@@ -136,7 +136,8 @@ message ListNodeStatusResponse {
 
 //only used on node client
 message GetJobRequest {
-    NodeDef  node = 1;
+    int64 node_id = 1;
+    int64 running_task_count = 2;
 }
 
 message GetJobResponse {

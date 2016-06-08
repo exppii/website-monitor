@@ -24,6 +24,8 @@ using std::make_unique;
 
 namespace webmonitor {
 
+namespace taskserver {
+
 class GrpcMasterService : public AsyncServiceInterface {
 public:
   GrpcMasterService(::grpc::ServerBuilder* builder) {
@@ -32,7 +34,7 @@ public:
   }
 
   ~GrpcMasterService() {
-  //  delete _shutdown_alarm;
+    //  delete _shutdown_alarm;
     delete _cq;
     delete _master_impl;
   }
@@ -102,7 +104,7 @@ private:
   MasterService::AsyncService _service;
   ::grpc::ServerCompletionQueue* _cq;  // Owned.
   Master* _master_impl;                // Owned.
- // ::grpc::Alarm* _shutdown_alarm;
+  // ::grpc::Alarm* _shutdown_alarm;
 
   std::mutex _mtx;
 
@@ -134,17 +136,17 @@ private:
 
   void ListJobStatusHandler(MasterCall<ListJobStatusRequest, ListJobStatusResponse>* call) {
     _master_impl->list_job_status(&call->request, &call->response,
-                          [call](const ::grpc::Status& status) {
-                            call->SendResponse(status);
-                          });
+                                  [call](const ::grpc::Status& status) {
+                                    call->SendResponse(status);
+                                  });
     ENQUEUE_REQUEST(CreateJob, true);
   }
 
   void ListNodeStatusHandler(MasterCall<ListNodeStatusRequest, ListNodeStatusResponse>* call) {
     _master_impl->list_node_status(&call->request, &call->response,
-                          [call](const ::grpc::Status& status) {
-                            call->SendResponse(status);
-                          });
+                                   [call](const ::grpc::Status& status) {
+                                     call->SendResponse(status);
+                                   });
     ENQUEUE_REQUEST(CreateJob, true);
   }
 
@@ -158,20 +160,21 @@ private:
 
   void ReportStatusHandler(MasterCall<ReportStatusRequest, ReportStatusResponse>* call) {
     _master_impl->report_status(&call->request, &call->response,
-                          [call](const ::grpc::Status& status) {
-                            call->SendResponse(status);
-                          });
+                                [call](const ::grpc::Status& status) {
+                                  call->SendResponse(status);
+                                });
     ENQUEUE_REQUEST(CreateJob, true);
   }
 
 };
 
-
 std::unique_ptr<AsyncServiceInterface> GrpcMasterServicePtr(::grpc::ServerBuilder
-* builder){
-return make_unique<GrpcMasterService>(builder);
+                                                            * builder){
+  return make_unique<GrpcMasterService>(builder);
 }
 
+
+} //namespace taskserver
 
 } //namespace elon
 

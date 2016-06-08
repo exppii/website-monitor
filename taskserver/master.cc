@@ -6,54 +6,52 @@
 
 namespace webmonitor {
 
-void Master::create_job(const CreateJobRequest *req, CreateJobResponse *resp,
-                              Master::closure done) {
-  //TODO
-  //_local_cache.add(req->jobs(0));
+namespace taskserver {
 
-  //_reply.status().set_response_code(ResponseStatusDef_STATUS_SUCCESS);
-  // ResponseStatusDef res;
+void Master::create_job(const CreateJobRequest *req, CreateJobResponse *resp,
+                        Master::closure done) {
 
   auto res = resp->mutable_response();
-  res->set_message("success add task to queue.");
-  res->set_status(RespStatusDef_STATUS_SUCCESS);
+  if(_cache_util.store_job(req->job())) {
+    res->set_message("success save task to local.");
+    res->set_status(RespStatusDef::SUCCESS);
+  } else {
+    res->set_message("failed to save task to local.");
+    res->set_status(RespStatusDef::FAILED);
+  }
   done(grpc::Status::OK);
 }
 
 void Master::update_job(const UpdateJobRequest *req, UpdateJobResponse *resp,
-                              Master::closure done) {
-  //TODO
-  //auto ret = _local_cache.update(req->jobs(0));
-  if(1) {
-    auto res = resp->mutable_response();
-    res->set_message("success update task to queue.");
-    res->set_status(RespStatusDef_STATUS_SUCCESS);
+                        Master::closure done) {
+  auto res = resp->mutable_response();
+  if(_cache_util.update_job(req->job())) {
+    res->set_message("success update task to local.");
+    res->set_status(RespStatusDef::SUCCESS);
   } else {
-    auto res = resp->mutable_response();
-    res->set_message("fail update task to queue.");
-    res->set_status(RespStatusDef_STATUS_FAILED);
+    res->set_message("failed to update task to local.");
+    res->set_status(RespStatusDef::FAILED);
   }
   done(grpc::Status::OK);
 }
 
 void Master::delete_job(const DeleteJobRequest *req, DeleteJobResponse *resp,
                         closure done) {
-  //TODO
-  //auto ret = _local_cache.update(req->jobs(0));
-  if(1) {
-    auto res = resp->mutable_response();
-    res->set_message("success update task to queue.");
-    res->set_status(RespStatusDef_STATUS_SUCCESS);
+
+  auto res = resp->mutable_response();
+  if(_cache_util.del_job(req->job_id())) {
+    res->set_message("success del task from local.");
+    res->set_status(RespStatusDef::SUCCESS);
   } else {
-    auto res = resp->mutable_response();
-    res->set_message("fail update task to queue.");
-    res->set_status(RespStatusDef_STATUS_FAILED);
+    res->set_message("failed to del task from local.");
+    res->set_status(RespStatusDef::FAILED);
   }
   done(grpc::Status::OK);
 }
 
 void Master::list_job_status(const ListJobStatusRequest *req,
                              ListJobStatusResponse *resp, closure done) {
+
   //TODO
   done(grpc::Status::OK);
 }
@@ -64,30 +62,43 @@ void Master::list_node_status(const ListNodeStatusRequest *req,
   done(grpc::Status::OK);
 }
 
+
+
+
+
+void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
+                     closure done) {
+  auto m = resp->mutable_task_map();
+
+  if(_running_task_count_match_in_local(req->node_id(), req->running_task_count())) {
+    _cache_util.get_fresh_task_list(req->node_id(),m);
+  } else {
+    _cache_util.get_whole_task_list(req->node_id(),m);
+  }
+
+  done(grpc::Status::OK);
+}
+
 void Master::report_status(const ReportStatusRequest *req,
                            ReportStatusResponse *resp, closure done) {
   //TODO
   done(grpc::Status::OK);
 }
 
+bool Master::_running_task_count_match_in_local(const int64_t& node_id, const int64_t& count) {
+  auto ret = false;
+  int64_t lcount{0};
 
-
-void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
-                     closure done) {
-  //TODO
-  std::cout << req->node().id() << std::endl;
-  for (int i = 0; i < 10; ++i) {
-    auto t = resp->add_task_list();
-    t->set_id(i*100);
-    t->set_content("task content");
-
+  if(_cache_util.get_count(node_id,&lcount)) {
+    ret = (count == lcount);
   }
-
-  done(grpc::Status::OK);
+  return ret;
 }
 
 
-} //namespace elon
+} //namespace taskserver
+
+} //namespace webmonitor
 
 
 
