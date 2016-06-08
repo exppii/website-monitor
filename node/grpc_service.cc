@@ -17,7 +17,7 @@
 
 #include "node/data_proc_service.h"
 
-#include "common/options.h"
+#include "node/options.h"
 
 
 #if __cplusplus < 201402L
@@ -44,11 +44,7 @@ struct Info {
   explicit Info(const Options *option) {
     fetch_frequency = option->get_fetchtask_frequency() * 6;
     report_frequency = option->get_report_frequency() * 6;
-
-    auto info = req.mutable_node();
-    info->set_id(option->get_node_id());
-    info->set_name(option->get_node_name());
-
+    req.set_node_id(option->get_node_id());
   }
 
   int fetch_frequency{60}; //in seconds
@@ -152,6 +148,7 @@ void GrpcService::_fetchjob_thread() {
     std::this_thread::sleep_for(seconds(_info.fetch_frequency));
     //TODO do fetch
     GetJobResponse resp{};
+    _info.req.set_running_task_count(_task_manager->running_count());
     auto status = _grpc_node->get_job(_info.req, &resp);
     if (!status.ok()) {
       _logger->error("Fetch task failed, error code: {} ,error message: {} ",

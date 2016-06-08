@@ -8,7 +8,7 @@
 
 #include "node/logger.h"
 
-#include "common/options.h"
+#include "node/options.h"
 
 #include "node/data_proc_service.h"
 #include "node/taskmanager_service.h"

@@ -15,11 +15,9 @@ file(GLOB SOURCE_FILES "./*.cc"
         "./dataproc/*.cc"
         "./response/*.cc")
 
-LIST(APPEND HEDER_FILES "../common/options.h"
-        "../common/utils.h")
+LIST(APPEND HEDER_FILES "../common/utils.h")
 
-LIST(APPEND SOURCE_FILES "../common/options.cc"
-        "../common/utils.cc")
+LIST(APPEND SOURCE_FILES "../common/utils.cc")
 
 set(LINK_LIBS grpc grpc++_unsecure protobuf dl curl)
 add_executable(nodeclient ${SOURCE_FILES} ${HEDER_FILES})

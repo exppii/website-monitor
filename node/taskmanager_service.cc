@@ -38,6 +38,8 @@ public:
 
   bool add_task(const std::map<int64_t, TaskSharedPtr> &) override;
 
+  size_t running_count() override ;
+
   void start() override;
 
   void stop() override;
@@ -56,6 +58,8 @@ private:
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
   bool _running{true};
+
+  size_t _count{0};
 
   std::unique_ptr<thread> _thread{nullptr};
   std::mutex _reserve_mtx;
@@ -95,14 +99,23 @@ void NodeTaskManager::stop() {
 }
 
 void NodeTaskManager::_work_thread() {
+
   _logger->info("init async result vector for task.");
   std::vector<std::future<bool> > task_result;
+
   while (_running) {
+
     _logger->debug("try move reserved task to regular list.");
     _mv_reserved_to_regular();
     //drop expired task
     for (auto t = _regular_task->begin(); t != _regular_task->end();) {
       t->second->is_expired() ? t = _regular_task->erase(t) : ++t;
+    }
+
+    {
+      //store current run task size
+      std::unique_lock<mutex> mlock(_regular_mtx);
+      _count = _regular_task->size();
     }
 
     _do_assign_task(&task_result);
@@ -137,6 +150,11 @@ void NodeTaskManager::_do_assign_task(std::vector<std::future<bool>>* result) {
     return (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
   }), result->end());
 
+}
+
+size_t NodeTaskManager::running_count() {
+  std::unique_lock<mutex> mlock(_regular_mtx);
+  return _count;
 }
 
 

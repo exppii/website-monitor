@@ -10,7 +10,7 @@
 #include "node/dataproc/zmq_process.h"
 
 
-#include "common/options.h"
+#include "node/options.h"
 #include "common/type_safe_queue.h"
 
 #if __cplusplus < 201402L

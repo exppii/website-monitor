@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "node/node_server.h"
-#include "common/options.h"
+#include "node/options.h"
 #include "common/utils.h"
 #include "node/logger.h"
 

@@ -30,6 +30,8 @@ public:
 
   virtual bool add_task(const std::map<int64_t, TaskSharedPtr>& ) = 0;
 
+  virtual size_t running_count() = 0;
+
 };
 
 std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr();
