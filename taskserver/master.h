@@ -19,7 +19,8 @@ namespace taskserver {
 class Master {
 
 public:
-  Master(){}
+  Master(const std::string& path, Options * options)
+      :_cache_util(LevelDBCachedUtilUniquePtr(path,options)) {}
 // Convenient typedef for a closure passing a Status.
   typedef std::function<void(const ::grpc::Status&)> closure;
 
@@ -41,7 +42,7 @@ private:
 private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(SERVER_TAG)};
-  LocalCachedUtil _cache_util;
+  std::unique_ptr <LocalCachedUtilInterface> _cache_util;
 
 };
 

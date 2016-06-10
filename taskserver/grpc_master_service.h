@@ -17,8 +17,10 @@ namespace webmonitor {
 
 namespace taskserver {
 
+class Options;
+
 std::unique_ptr <AsyncServiceInterface> GrpcMasterServicePtr(
-    ::grpc::ServerBuilder *builder);
+    ::grpc::ServerBuilder *builder, Options*);
 
 } //namespace taskserver
 

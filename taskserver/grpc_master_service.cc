@@ -26,7 +26,8 @@ namespace taskserver {
 
 class GrpcMasterService : public AsyncServiceInterface {
 public:
-  GrpcMasterService(::grpc::ServerBuilder* builder) {
+  GrpcMasterService(::grpc::ServerBuilder* builder, Options* options)
+      :_master_impl(new Master("../localdb", options)) {
     _logger->info("init grpc master service...");
     builder->RegisterService(&_service);
     _logger->info("add completion queue .");
@@ -176,8 +177,8 @@ private:
 };
 
 std::unique_ptr<AsyncServiceInterface> GrpcMasterServicePtr(::grpc::ServerBuilder
-                                                            * builder){
-  return make_unique<GrpcMasterService>(builder);
+                                                            * builder, Options* options){
+  return make_unique<GrpcMasterService>(builder, options);
 }
 
 

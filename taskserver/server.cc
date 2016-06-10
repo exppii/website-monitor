@@ -7,8 +7,10 @@
 #include "common/rpc/async_service_interface.h"
 #include "protos/master_service.grpc.pb.h"
 
+
 #include "common/utils.h"
 #include "taskserver/logger.h"
+#include "taskserver/options.h"
 
 using namespace std;
 using namespace webmonitor;
@@ -16,6 +18,7 @@ using namespace webmonitor;
 
 int main(int argc, char const *argv[]) {
 
+  taskserver::Options opt("../conf/node_service.config");
   //create logs dir to save log files.
   mkdir_if_not_exists("../logs");
 
@@ -39,7 +42,7 @@ int main(int argc, char const *argv[]) {
   builder.AddListeningPort(server_address, ::grpc::InsecureServerCredentials());
   builder.SetMaxMessageSize(std::numeric_limits<int>::max());
 
-  auto master_service = taskserver::GrpcMasterServicePtr(&builder);
+  auto master_service = taskserver::GrpcMasterServicePtr(&builder, &opt);
   std::unique_ptr<::grpc::Server> server = nullptr;
   server = builder.BuildAndStart();
   master_service->handle_grpc_loop();

@@ -12,7 +12,7 @@ void Master::create_job(const CreateJobRequest *req, CreateJobResponse *resp,
                         Master::closure done) {
   _logger->info("received one create job command.");
   auto res = resp->mutable_response();
-  if(_cache_util.store_job(req->job())) {
+  if(_cache_util->store_job(req->job())) {
     res->set_message("success save task to local.");
     res->set_status(RespStatusDef::SUCCESS);
   } else {
@@ -26,7 +26,7 @@ void Master::update_job(const UpdateJobRequest *req, UpdateJobResponse *resp,
                         Master::closure done) {
   _logger->info("received one update job command.");
   auto res = resp->mutable_response();
-  if(_cache_util.update_job(req->job())) {
+  if(_cache_util->update_job(req->job())) {
     res->set_message("success update task to local.");
     res->set_status(RespStatusDef::SUCCESS);
   } else {
@@ -40,7 +40,7 @@ void Master::delete_job(const DeleteJobRequest *req, DeleteJobResponse *resp,
                         closure done) {
   _logger->info("received one delete job command.");
   auto res = resp->mutable_response();
-  if(_cache_util.del_job(req->job_id())) {
+  if(_cache_util->del_job(req->job_id())) {
     res->set_message("success del task from local.");
     res->set_status(RespStatusDef::SUCCESS);
   } else {
@@ -75,9 +75,9 @@ void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
   auto m = resp->mutable_task_map();
 
   if(_running_task_count_match_in_local(req->node_id(), req->running_task_count())) {
-    _cache_util.get_fresh_task_list(req->node_id(),m);
+    _cache_util->get_fresh_task_list(req->node_id(),m);
   } else {
-    _cache_util.get_whole_task_list(req->node_id(),m);
+    _cache_util->get_whole_task_list(req->node_id(),m);
   }
 
   done(grpc::Status::OK);
@@ -94,7 +94,7 @@ bool Master::_running_task_count_match_in_local(const int64_t& node_id, const in
   auto ret = false;
   int64_t lcount{0};
 
-  if(_cache_util.get_count(node_id,&lcount)) {
+  if(_cache_util->get_count(node_id,&lcount)) {
     ret = (count == lcount);
   }
   return ret;
