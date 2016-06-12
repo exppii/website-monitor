@@ -35,7 +35,7 @@ message TaskDef {
       RUN = 2;
     }
 
-    int32 frequency = 2;
+    uint32 frequency = 2;
     string dest = 3;
     TYPE type = 4;
     STATUS status = 5;
@@ -44,9 +44,9 @@ message TaskDef {
 
 //web client sent this job to taskserver
 message JobDef {
-    int64 id = 1;
+    uint64 id = 1;
     TaskDef task = 2;
-    repeated int64 node_list = 3;
+    repeated uint64 node_list = 3;
 }
 
 //common response message
@@ -83,7 +83,7 @@ message JobStatusDef {
 }
 
 message NodeDef {
-    int64 id = 1;
+    uint64 id = 1;
     string name = 2;
 }
 
@@ -98,7 +98,7 @@ message CreateJobResponse {
 
 //update job
 message UpdateJobRequest {
-    int64  job_id = 1;
+    uint64  job_id = 1;
     JobDef job = 2;
 }
 
@@ -108,7 +108,7 @@ message UpdateJobResponse {
 
 //delete job
 message DeleteJobRequest {
-    int64 job_id = 1;
+    uint64 job_id = 1;
 }
 
 message DeleteJobResponse {
@@ -122,7 +122,7 @@ message ListJobStatusRequest {
 
 message ListJobStatusResponse {
 
-    map<int64, JobStatusDef> jobs = 1;
+    map<uint64, JobStatusDef> jobs = 1;
 }
 
 //list all worker status
@@ -131,23 +131,23 @@ message ListNodeStatusRequest {
 }
 
 message ListNodeStatusResponse {
-    map<int64, NodeStatusDef> workers = 1;
+    map<uint64, NodeStatusDef> workers = 1;
 }
 
 //only used on node client
 message GetJobRequest {
-    int64 node_id = 1;
+    uint64 node_id = 1;
     int64 running_task_count = 2;
 }
 
 message GetJobResponse {
-  map<int64, TaskDef> task_map = 1;
+  map<uint64, TaskDef> task_map = 1;
 }
 
 //only used on node client
 message ReportStatusRequest {
     NodeStatusDef  status = 1;
-    int64 node_id = 2;
+    uint64 node_id = 2;
 }
 
 message ReportStatusResponse {

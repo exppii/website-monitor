@@ -1,0 +1,8 @@
+//
+// Created by 刘优 on 16/6/12.
+//
+
+#ifndef WEBSITEMONITOR_VARINT_H
+#define WEBSITEMONITOR_VARINT_H
+
+#endif //WEBSITEMONITOR_VARINT_H
