@@ -100,4 +100,13 @@ ENDFOREACH()
 add_subdirectory(taskserver)
 #add_subdirectory(webclient)
 add_subdirectory(node)
-#add_subdirectory(deprecated)
+
+
+#gtest
+enable_testing()
+set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
+add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
+
+include_directories(${GTEST_INCLUDE_DIRS})
+
+add_subdirectory(test)
