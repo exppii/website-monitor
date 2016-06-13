@@ -63,40 +63,23 @@ std::string Options::get_log_path() const {
 }
 
 std::string Options::get_log_config_path() const {
-  return "../conf/node_log.config";
+  return "../conf/taskserver_log.config";
 }
 
-int Options::get_report_frequency() const {
-  return _config->data["report_frequency"].is_number() ? _config->data["report_frequency"].get<int>() : 3;
-
+unsigned int Options::get_cache_size() const {
+  return _config->data["cache_size"].get<unsigned int>();
 }
 
-int Options::get_fetchtask_frequency() const {
-  return _config->data["fetchtask_frequency"].is_number() ? _config->data["fetchtask_frequency"].get<int>() : 1;
+std::string Options::get_listen_addr() const {
+  return _config->data["listen_addr"].get<std::string>();
 }
 
-int Options::get_taskserver_port() const {
-  return _config->data["taskserver_port"].get<int>();
+std::string Options::get_chachefile_path() const {
+  return _config->data["chachefile_path"].get<std::string>();
 }
 
-std::string Options::get_taskserver_addr() const {
-  return _config->data["taskserver_addr"].get<std::string>();
-}
-
-std::string Options::get_upload_addr() const {
-  return _config->data["upload_addr"].get<std::string>();
-}
-
-int Options::get_upload_port() const {
-  return _config->data["upload_port"].get<int>();
-}
-
-int64_t Options::get_node_id() const {
-  return _config->data["node_id"].get<long>();
-}
-
-std::string Options::get_node_name() const {
-  return _config->data["node_name"].get<std::string>();
+unsigned int Options::get_listen_port() const {
+  return _config->data["listen_port"].get<unsigned int>();
 }
 
 } //namespace taskserver

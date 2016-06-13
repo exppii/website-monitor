@@ -21,15 +21,11 @@ public:
 
   std::string get_log_path() const;
   std::string get_log_config_path() const;
-  int get_report_frequency() const;
-  int get_fetchtask_frequency() const;
-  int get_taskserver_port() const;
-  std::string get_taskserver_addr() const;
-  std::string get_upload_addr() const;
-  int get_upload_port() const;
 
-  int64_t get_node_id() const;
-  std::string get_node_name() const;
+  unsigned int get_cache_size() const;
+  std::string get_listen_addr() const;
+  std::string get_chachefile_path() const;
+  unsigned int get_listen_port() const;
 
 private:
   std::unique_ptr<LocalConfig> _config;
