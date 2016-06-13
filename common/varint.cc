@@ -40,12 +40,12 @@ void encode_fixint64(char* buf, uint64_t value) {
 }
 
 
-char* encode_varint32(char* dst, uint32_t value) {
-
-}
-char* encode_varint64(char* dst, uint64_t vaule) {
-
-}
+//char* encode_varint32(char* dst, uint32_t value) {
+//
+//}
+//char* encode_varint64(char* dst, uint64_t vaule) {
+//
+//}
 
 uint32_t decode_fixed32(const char* ptr) {
   if (port::kLittleEndian) {

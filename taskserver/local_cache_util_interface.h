@@ -20,7 +20,7 @@ class LocalCachedUtilInterface {
 
 public:
 
-  using TaskMap = ::google::protobuf::Map< ::google::protobuf::int64, TaskDef>;
+  using TaskMap = ::google::protobuf::Map< ::google::protobuf::uint64, TaskDef>;
 
   LocalCachedUtilInterface() = default;
   virtual ~LocalCachedUtilInterface(){}
@@ -33,16 +33,16 @@ public:
 
   virtual bool update_job(const JobDef& job) = 0;
 
-  virtual bool del_job(const int64_t& job_id) = 0;
+  virtual bool del_job(const uint64_t& job_id) = 0;
 
-  virtual bool get_fresh_task_list(const int64_t& node_id, TaskMap* tasks) = 0;
+  virtual bool get_fresh_task_list(const uint64_t& node_id, TaskMap* tasks) = 0;
 
-  virtual bool get_whole_task_list(const int64_t& node_id, TaskMap* tasks) = 0;
+  virtual bool get_whole_task_list(const uint64_t& node_id, TaskMap* tasks) = 0;
 
-  virtual bool store_task_node_ship(const int64_t& job_id,
-                                    const int64_t& node_id) = 0;
+  virtual bool store_task_node_ship(const uint64_t& job_id,
+                                    const uint64_t& node_id) = 0;
 
-  virtual bool get_count(const int64_t& node_id, int64_t* count) = 0;
+  virtual bool get_count(const uint64_t& node_id, uint64_t* count) = 0;
 
 };
 

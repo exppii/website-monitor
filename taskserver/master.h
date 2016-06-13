@@ -37,7 +37,7 @@ public:
 
 private:
 
-  bool _running_task_count_match_in_local(const int64_t& node_id, const int64_t& count);
+  bool _running_task_count_match_in_local(const uint64_t& node_id, const uint64_t& count);
 
 private:
 

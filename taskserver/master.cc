@@ -90,9 +90,9 @@ void Master::report_status(const ReportStatusRequest *req,
   done(grpc::Status::OK);
 }
 
-bool Master::_running_task_count_match_in_local(const int64_t& node_id, const int64_t& count) {
+bool Master::_running_task_count_match_in_local(const uint64_t& node_id, const uint64_t& count) {
   auto ret = false;
-  int64_t lcount{0};
+  uint64_t lcount{0};
 
   if(_cache_util->get_count(node_id,&lcount)) {
     ret = (count == lcount);
