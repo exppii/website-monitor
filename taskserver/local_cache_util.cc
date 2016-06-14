@@ -133,7 +133,7 @@ bool LocalCachedUtil::update_job(const JobDef &job) {
   leveldb::Slice range(RALATED + jobid);
 
   //scan all node list related with jobid;
-  auto node_list = _scan_range(range);
+  auto node_list = _scan_key_range(range);
 
   leveldb::WriteBatch batch;
   //# 第一步 删除有job关联 kv对
@@ -168,7 +168,7 @@ bool LocalCachedUtil::del_job(const uint64_t &job_id) {
   leveldb::Slice range(RALATED + jobid);
 
   //scan all node list related with jobid;
-  auto node_list = _scan_range(range);
+  auto node_list = _scan_key_range(range);
 
   leveldb::WriteBatch batch;
   //# 第一步 删除有job关联 kv对
@@ -212,20 +212,14 @@ bool LocalCachedUtil::get_fresh_task_list(const uint64_t &node_id,
 bool LocalCachedUtil::get_whole_task_list(const uint64_t &node_id,
                                           TaskMap *tasks) {
 
-  const std::string nodeid = _id_to_string(node_id);
-  leveldb::Slice range(FRESH + nodeid);
-  auto jobid_list = _scan_range(range);
-  TaskDef t;
-  for (const auto &id : jobid_list) {
-    Slice key(JOBKEY + id);
-    std::string val;
-    _db->Get(leveldb::ReadOptions(), key, &val);
-    if (t.ParseFromString(val))
-      tasks->insert({decode_fixed64(id.c_str()), t});
-  }
 
+
+  get_fresh_task_list(node_id,tasks);
+
+  TaskDef t;
+  const std::string nodeid = _id_to_string(node_id);
   leveldb::Slice range2(OLD + nodeid);
-  auto jobid2_list = _scan_range(range2);
+  auto jobid2_list = _scan_key_range(range2);
   for (const auto &id : jobid2_list) {
     Slice key(JOBKEY + id);
     std::string val;

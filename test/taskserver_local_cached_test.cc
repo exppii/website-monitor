@@ -70,63 +70,121 @@ TEST_F(LocalCacheTest, HandleGetFreshTask) {
 
   webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap2;
 
-  EXPECT_TRUE(cache->get_fresh_task_list(10,&taskmap2));
-  EXPECT_EQ(0, taskmap2.size());
-  EXPECT_EQ(10, cache->get_range_count(OLD)); //10*3 + 5*
-  EXPECT_EQ(25, cache->get_range_count(FRESH)); //10*3 + 5*
+  EXPECT_TRUE(cache->get_fresh_task_list(10,&taskmap2)) << "node: 10 get fresh task twice";
+  EXPECT_EQ(0, taskmap2.size()) << "fresh task should be zero";
+  EXPECT_EQ(10, cache->get_range_count(OLD))<< "old tasks did not change";
+  EXPECT_EQ(25, cache->get_range_count(FRESH))<< "fresh tasks did not change";
 
   webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap3;
 
-  EXPECT_TRUE(cache->get_fresh_task_list(40,&taskmap3));
-  EXPECT_EQ(5, taskmap3.size());
-  EXPECT_EQ(15, cache->get_range_count(OLD)); //10 + 5
-  EXPECT_EQ(20, cache->get_range_count(FRESH)); //35 -10 - 5
+  EXPECT_TRUE(cache->get_fresh_task_list(30,&taskmap3)) << "node: 30 get fresh task";
+  EXPECT_EQ(10, taskmap3.size()) << "node: 30 should have 10 tasks";
+  EXPECT_EQ(20, cache->get_range_count(OLD))<< "node: 30 would put 10 tasks to regular";
+  EXPECT_EQ(15, cache->get_range_count(FRESH))<< "rest fresh task should be 35 - 20";
+
+  webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap4;
+
+  EXPECT_TRUE(cache->get_fresh_task_list(40,&taskmap4))<< "node: 40 get fresh task";
+  EXPECT_EQ(5, taskmap4.size())<< "node: 40 should have 5 tasks";
+  EXPECT_EQ(25, cache->get_range_count(OLD))<< "node: 40 would put 5 tasks to regular";
+  EXPECT_EQ(10, cache->get_range_count(FRESH)) << "rest fresh task should be 35 - 20";
+
 }
 
 TEST_F(LocalCacheTest, HandleUpdateJob) {
-  //before update
-  //job count 10
-  //re
 
-  // JobDef job;
-  // job.set_id(3000);
-  // auto task = job.mutable_task();
-  //
-  // task->set_frequency(10);
-  // task->set_dest("qq.com");
-  // task->set_type(webmonitor::TaskDef::DNS);
-  // //remove node 10 and add node 40
-  // job.add_node_list(40);
-  // job.add_node_list(20);
-  // job.add_node_list(30);
-  //
-  // EXPECT_TRUE(cache->update_job(job)) << "update job to cache: " << job.id();
-  //
-  // EXPECT_EQ(15, cache->get_range_count("r")); //10 + 5
-  // EXPECT_EQ(20, cache->get_range_count("s")); //35 -10 - 5
+  JobDef job;
+  job.set_id(3000);
+  auto task = job.mutable_task();
+
+  task->set_frequency(10);
+  task->set_dest("qq.com");
+  task->set_type(webmonitor::TaskDef::DNS);
+  //remove node 20 and add node 40 & 50
+  job.add_node_list(10);
+  job.add_node_list(40);
+  job.add_node_list(30);
+  job.add_node_list(50);
+
+  EXPECT_TRUE(cache->update_job(job)) << "update job to cache: " << job.id();
+
+  EXPECT_EQ(10, cache->get_range_count(JOBKEY)) << "should have 10 jobs";
+
+  EXPECT_EQ(9, cache->get_range_count(OLD + _id_to_string(10))) << "node10 should have 9 old jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(10))) << "node10 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(20))) << "node20 should have 0 old jobs";
+  EXPECT_EQ(9, cache->get_range_count(FRESH + _id_to_string(20))) << "node20 should have 9 new jobs";
+
+  EXPECT_EQ(9, cache->get_range_count(OLD + _id_to_string(30))) << "node30 should have 0 old jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(30))) << "node30 should have 10 new jobs";
+
+  EXPECT_EQ(5, cache->get_range_count(OLD + _id_to_string(40))) << "node40 should have 5 old jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(40))) << "node40 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(50))) << "node50 should have 0 fresh jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(50))) << "node50 should have 1 fresh jobs";
+
+  EXPECT_EQ(23, cache->get_range_count(OLD)) << "del node10,30 so: 15 -2 = 14";
+  EXPECT_EQ(13, cache->get_range_count(FRESH))
+  << "add node10,30,40,50 fresh and del node20 so: 10 + 4 -1 = 13";
+
 
 }
 
 TEST_F(LocalCacheTest, HandleGetTheWholeTask) {
-  // JobDef job;
-  // job.set_id(11000);
-  // auto task = job.mutable_task();
-  //
-  // task->set_frequency(i);
-  // task->set_dest("baidu.com");
-  // task->set_type(webmonitor::TaskDef::DNS);
-  //
-  // job.add_node_list(10);
-  // job.add_node_list(20);
-  // job.add_node_list(30);
-  // EXPECT_TRUE(cache->store_job(job)) << "store job to cache: " << job.id();
+
+  webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap;
+
+  EXPECT_TRUE(cache->get_fresh_task_list(40,&taskmap));
+  EXPECT_EQ(1, taskmap.size());
+  EXPECT_EQ(24, cache->get_range_count(OLD)); //10 + 5
+  EXPECT_EQ(12, cache->get_range_count(FRESH)); //35 -10 - 5
+
+  webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap2;
+  EXPECT_TRUE(cache->get_whole_task_list(10,&taskmap2));
+  EXPECT_EQ(10, taskmap2.size());
+
+  EXPECT_EQ(10, cache->get_range_count(OLD + _id_to_string(10))) << "node10 should have 9 old jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(10))) << "node10 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(20))) << "node20 should have 0 old jobs";
+  EXPECT_EQ(9, cache->get_range_count(FRESH + _id_to_string(20))) << "node20 should have 9 new jobs";
+
+  EXPECT_EQ(9, cache->get_range_count(OLD + _id_to_string(30))) << "node30 should have 0 old jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(30))) << "node30 should have 10 new jobs";
+
+  EXPECT_EQ(6, cache->get_range_count(OLD + _id_to_string(40))) << "node40 should have 5 old jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(40))) << "node40 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(50))) << "node50 should have 0 fresh jobs";
+  EXPECT_EQ(1, cache->get_range_count(FRESH + _id_to_string(50))) << "node50 should have 1 fresh jobs";
 
 
-//  webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap;
-//
-//  EXPECT_TRUE(cache->(10,&taskmap));
-//  cache->print_all();
-//  EXPECT_EQ(10, cache->get_range_count("r")); //10*3 + 5*
-//  EXPECT_EQ(25, cache->get_range_count("s")); //10*3 + 5*
+}
+
+
+TEST_F(LocalCacheTest, HandleDeleteTask) {
+  for (size_t i = 1; i < 4; i++) {
+    EXPECT_TRUE(cache->del_job(i * 1000)) << "delete job from cache: " << i * 1000;
+  }
+
+  EXPECT_EQ(7, cache->get_range_count(JOBKEY)) << "should have 7 jobs";
+
+  EXPECT_EQ(7, cache->get_range_count(OLD + _id_to_string(10))) << "node10 should have 9 old jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(10))) << "node10 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(20))) << "node20 should have 0 old jobs";
+  EXPECT_EQ(7, cache->get_range_count(FRESH + _id_to_string(20))) << "node20 should have 9 new jobs";
+
+  EXPECT_EQ(7, cache->get_range_count(OLD + _id_to_string(30))) << "node30 should have 0 old jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(30))) << "node30 should have 10 new jobs";
+
+  EXPECT_EQ(4, cache->get_range_count(OLD + _id_to_string(40))) << "node40 should have 5 old jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(40))) << "node40 should have 1 new jobs";
+
+  EXPECT_EQ(0, cache->get_range_count(OLD + _id_to_string(50))) << "node50 should have 0 fresh jobs";
+  EXPECT_EQ(0, cache->get_range_count(FRESH + _id_to_string(50))) << "node50 should have 1 fresh jobs";
+
 
 }
