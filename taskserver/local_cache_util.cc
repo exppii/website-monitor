@@ -74,7 +74,7 @@ public:
   bool store_task_node_ship(const uint64_t &job_id,
                             const uint64_t &node_id) override;
 
-  bool get_count(const uint64_t &node_id, uint64_t *count) override;
+  uint64_t get_count(const uint64_t &node_id) override;
 
   uint64_t get_range_count(const std::string &range) override;
 
@@ -89,7 +89,7 @@ private:
   }
 
   //std::vector<uint64_t> _scan_id_range(const Slice &start, const Slice &end);
-  std::vector<string> _scan_range(const Slice &range);
+  std::vector<string> _scan_value_range(const Slice &range);
 
   std::vector<string> _scan_key_range(const Slice &range);
 
@@ -236,8 +236,11 @@ bool LocalCachedUtil::store_task_node_ship(const uint64_t &job_id,
   return false;
 }
 
-bool LocalCachedUtil::get_count(const uint64_t &node_id, uint64_t *count) {
-  return false;
+uint64_t LocalCachedUtil::get_count(const uint64_t &node_id) {
+
+  Slice range(OLD + _id_to_string(node_id));
+  return _scan_count(range);
+
 }
 
 LocalCachedUtil::LocalCachedUtil(Options *option) {
@@ -283,7 +286,7 @@ std::vector<string> LocalCachedUtil::_scan_key_range(const Slice &range) {
   return key_list;
 }
 
-std::vector<string> LocalCachedUtil::_scan_range(const Slice &range) {
+std::vector<string> LocalCachedUtil::_scan_value_range(const Slice &range) {
   std::vector<string> task_list{};
 
   shared_ptr<leveldb::Iterator> iter(_db->NewIterator(leveldb::ReadOptions()));

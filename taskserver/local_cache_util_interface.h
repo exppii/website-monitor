@@ -42,7 +42,7 @@ public:
   virtual bool store_task_node_ship(const uint64_t& job_id,
                                     const uint64_t& node_id) = 0;
 
-  virtual bool get_count(const uint64_t& node_id, uint64_t* count) = 0;
+  virtual uint64_t get_count(const uint64_t& node_id) = 0;
 
   virtual uint64_t get_range_count(const std::string& range) = 0;
 

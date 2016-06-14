@@ -91,13 +91,7 @@ void Master::report_status(const ReportStatusRequest *req,
 }
 
 bool Master::_running_task_count_match_in_local(const uint64_t& node_id, const uint64_t& count) {
-  auto ret = false;
-  uint64_t lcount{0};
-
-  if(_cache_util->get_count(node_id,&lcount)) {
-    ret = (count == lcount);
-  }
-  return ret;
+  return count == _cache_util->get_count(node_id);
 }
 
 
