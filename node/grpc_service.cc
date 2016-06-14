@@ -47,8 +47,8 @@ struct Info {
     req.set_node_id(option->get_node_id());
   }
 
-  int fetch_frequency{60}; //in seconds
-  int report_frequency{180}; //in seconds
+  uint32_t fetch_frequency{60}; //in seconds
+  uint32_t report_frequency{180}; //in seconds
   GetJobRequest req{};
 };
 

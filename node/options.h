@@ -19,14 +19,14 @@ public:
 
   std::string get_log_path() const;
   std::string get_log_config_path() const;
-  int get_report_frequency() const;
-  int get_fetchtask_frequency() const;
-  int get_taskserver_port() const;
+  uint32_t get_report_frequency() const;
+  uint32_t get_fetchtask_frequency() const;
+  uint32_t get_taskserver_port() const;
   std::string get_taskserver_addr() const;
   std::string get_upload_addr() const;
-  int get_upload_port() const;
+  uint32_t get_upload_port() const;
 
-  int64_t get_node_id() const;
+  uint64_t get_node_id() const;
   std::string get_node_name() const;
 
 private:

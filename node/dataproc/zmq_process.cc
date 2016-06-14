@@ -15,7 +15,7 @@ namespace node {
 
 class ZMQProc : public DataProcInterface {
 public:
-  ZMQProc(const std::string& url, const int port) {
+  ZMQProc(const std::string& url, const uint32_t port) {
 
   }
 
@@ -30,7 +30,7 @@ bool ZMQProc::proc(std::string* data) {
   return true;
 }
 
-DataProcInterfacePtr ZMQProcUniuePtr(const std::string& url, const int port){
+DataProcInterfacePtr ZMQProcUniuePtr(const std::string& url, const uint32_t port){
   return make_unique<ZMQProc>(url, port);
 }
 

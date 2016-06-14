@@ -13,7 +13,7 @@ namespace webmonitor {
 
 namespace node {
 
-DataProcInterfacePtr ZMQProcUniuePtr(const std::string&, const int);
+DataProcInterfacePtr ZMQProcUniuePtr(const std::string&, const uint32_t);
 
 } //namespace node
 } //namespace webmonitor

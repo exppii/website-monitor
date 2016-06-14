@@ -47,6 +47,8 @@ public:
 
 private:
 
+  bool _running{true};
+
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
   std::unique_ptr<DataProcServiceInterface> _data_proc;
@@ -72,9 +74,10 @@ void NodeServer::stop() {
 //TODO
 int NodeServer::wait_shutdown() {
 
-  while (true) {
+  while (_running) {
     std::this_thread::sleep_for(std::chrono::seconds(30));
   }
+  return 1;
 }
 
 
