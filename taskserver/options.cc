@@ -74,8 +74,8 @@ std::string Options::get_listen_addr() const {
   return _config->data["listen_addr"].get<std::string>();
 }
 
-std::string Options::get_chachefile_path() const {
-  return _config->data["chachefile_path"].get<std::string>();
+std::string Options::get_cachefile_path() const {
+  return _config->data["cachefile_path"].get<std::string>();
 }
 
 unsigned int Options::get_listen_port() const {

@@ -24,7 +24,7 @@ public:
 
   unsigned int get_cache_size() const;
   std::string get_listen_addr() const;
-  std::string get_chachefile_path() const;
+  std::string get_cachefile_path() const;
   unsigned int get_listen_port() const;
 
 private:

@@ -44,6 +44,11 @@ public:
 
   virtual bool get_count(const uint64_t& node_id, uint64_t* count) = 0;
 
+  virtual uint64_t get_range_count(const std::string& range) = 0;
+
+  //test
+  virtual void print_all() = 0;
+
 };
 
 } //namespace taskserver

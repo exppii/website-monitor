@@ -3,17 +3,18 @@
 //
 
 #include "common/utils.h"
-#include <sys/stat.h>  // for mkdir
-
 #include <sstream>
 #include <fstream>
 
+#include <sys/stat.h>  // for mkdir
+#include <dirent.h> //for DIR
 
-bool file_exists(const std::string& path) {
+
+bool file_exists(const std::string &path) {
   return (access(path.c_str(), F_OK) != -1);
 }
 
-void mkdir_if_not_exists(const std::string& path) {
+void mkdir_if_not_exists(const std::string &path) {
   if (!file_exists(path))
     mkdir(path.c_str(), 0755);
 }
@@ -28,8 +29,7 @@ std::string get_current_path() {
   return (current_absolute_path + "/");
 }
 
-
-bool read_file(const std::string& file_path, std::string* dest) {
+bool read_file(const std::string &file_path, std::string *dest) {
   bool ret = false;
   std::ifstream file(file_path);
   if (file) {

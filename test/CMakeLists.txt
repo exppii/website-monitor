@@ -8,6 +8,7 @@ set(LOCAL_CACHED_TEST_LINK_LIBS grpc grpc++_unsecure protobuf dl leveldb)
 
 add_executable(task_local_cached_test
         taskserver_local_cached_test.cc
+        "taskserver_test.cc"
         "../common/varint.cc"
         "../common/utils.cc"
         "../taskserver/local_cache_util.cc"
@@ -52,5 +53,3 @@ target_link_libraries(node_client_test ${NODE_LINK_LIBS}
 add_dependencies(node_client_test googletest)
 
 add_test(node_client_test ${PROJECT_BINARY_DIR}/bin/node_client_test)
-
-

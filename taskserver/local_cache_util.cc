@@ -4,15 +4,23 @@
 
 #include "taskserver/local_cache_util.h"
 
+#include <limits>
+
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 #include <leveldb/iterator.h>
 #include <leveldb/comparator.h>
+
+#include "taskserver/options.h"
 #include "common/varint.h"
+#include "common/utils.h"
+
 
 #ifndef NDEBUG
 
+#include <iostream>
 #include <cassert>
+
 #endif
 
 #if __cplusplus < 201402L
@@ -30,26 +38,26 @@ namespace webmonitor {
 namespace taskserver {
 
 const std::string JOBKEY = "j"; //job jobcontent kv pre
-const std::string RESERVE_RALATED = "s"; //reserve node job relationship pre
-const std::string REGULAR_RALATED = "r"; //regular node job relationship pre
-const std::string JOB_RALATED = "n"; //job node relationship pre relate
+const std::string FRESH = "f"; //fresh node job relationship pre
+const std::string OLD = "o"; //old node job relationship pre
+const std::string RALATED = "r"; //job node relationship pre relate
 const size_t LONG_SIZE = 8;
 
-
-bool in_range_compare(const Slice &a, const Slice &b) {
-#ifndef NDEBUG
-  assert(a.size()> LONG_SIZE );
-  assert(b.size()> LONG_SIZE);
-#endif
-  Slice a1(a.data(),LONG_SIZE + 1),b1(b.data(),LONG_SIZE + 1);
-  return a1.compare(b1) == 0;
-}
+//
+//bool in_range_compare(const Slice &a, const Slice &range) {
+//#ifndef NDEBUG
+//  assert(a.size()>= range.size() );
+//  printf("current a: %s, range: %s \n", a.data(), range.data());
+//#endif
+//  Slice a1(a.data(),range.size());
+//  return a1 == range;
+//}
 
 class LocalCachedUtil : public LocalCachedUtilInterface {
 
 public:
 
-  LocalCachedUtil(const std::string &path, Options *option);
+  LocalCachedUtil(Options *option);
 
   ~LocalCachedUtil();
 
@@ -68,16 +76,24 @@ public:
 
   bool get_count(const uint64_t &node_id, uint64_t *count) override;
 
+  uint64_t get_range_count(const std::string &range) override;
+
+  void print_all() override;
+
 private:
 
-  string _id_to_string(const uint64_t& id) {
+  string _id_to_string(const uint64_t &id) {
     char buf[LONG_SIZE] = {0};
     encode_fixint64(buf, id);
-    return std::string(buf,LONG_SIZE);
+    return std::string(buf, LONG_SIZE);
   }
 
   //std::vector<uint64_t> _scan_id_range(const Slice &start, const Slice &end);
-  std::vector<string> _scan_range(const Slice &start);
+  std::vector<string> _scan_range(const Slice &range);
+
+  std::vector<string> _scan_key_range(const Slice &range);
+
+  uint64_t _scan_count(const Slice &range);
 
 private:
 
@@ -96,14 +112,15 @@ bool LocalCachedUtil::store_job(const JobDef &job) {
 
   leveldb::WriteBatch batch;
   //# 第一步 创建 job kv对 插入数据库
-  batch.Put(JOBKEY, taskstring);
+  batch.Put(jkey, taskstring);
   //# 第二步 创建 node 和 job reserve关联 kv 对
+  Slice emptyval{};
   for (const auto &nid: job.node_list()) {
     const std::string nodeid = _id_to_string(nid);
-    Slice reserve(RESERVE_RALATED + nodeid + jobid);
-    Slice job_related(JOB_RALATED + jobid + nodeid);
-    batch.Put(reserve, jobid);
-    batch.Put(job_related, nodeid);
+    Slice reserve(FRESH + nodeid + jobid);
+    Slice job_related(RALATED + jobid + nodeid);
+    batch.Put(reserve, emptyval);
+    batch.Put(job_related, emptyval);
   }
 
   auto s = _db->Write(leveldb::WriteOptions(), &batch);
@@ -113,17 +130,18 @@ bool LocalCachedUtil::store_job(const JobDef &job) {
 bool LocalCachedUtil::update_job(const JobDef &job) {
 
   const std::string jobid = _id_to_string(job.id());
-  leveldb::Slice startkey(JOB_RALATED + jobid + _id_to_string(0));
+  leveldb::Slice range(RALATED + jobid);
 
   //scan all node list related with jobid;
-  auto node_list = _scan_range(startkey);
+  auto node_list = _scan_range(range);
 
   leveldb::WriteBatch batch;
   //# 第一步 删除有job关联 kv对
-  for(const auto& nid : node_list) {
-    batch.Delete(RESERVE_RALATED + nid + jobid);
-    batch.Delete(REGULAR_RALATED + nid + jobid);
-    batch.Delete(JOB_RALATED + jobid + nid);
+
+  for (const auto &nid : node_list) {
+    batch.Delete(FRESH + nid + jobid);
+    batch.Delete(OLD + nid + jobid);
+    batch.Delete(RALATED + jobid + nid);
   }
 
   std::string taskstring{};
@@ -131,12 +149,13 @@ bool LocalCachedUtil::update_job(const JobDef &job) {
   //# 第一步 创建 job kv对 插入数据库
   batch.Put(JOBKEY + jobid, taskstring);
   //# 第二步 创建 node 和 job reserve关联 kv 对
+  Slice emptyval{};
   for (const auto &nid: job.node_list()) {
     const std::string nodeid = _id_to_string(nid);
-    Slice reserve(RESERVE_RALATED + nodeid + jobid);
-    Slice job_related(JOB_RALATED + jobid + nodeid);
-    batch.Put(reserve, jobid);
-    batch.Put(job_related, nodeid);
+    Slice reserve(FRESH + nodeid + jobid);
+    Slice job_related(RALATED + jobid + nodeid);
+    batch.Put(reserve, emptyval);
+    batch.Put(job_related, emptyval);
   }
 
   auto s = _db->Write(leveldb::WriteOptions(), &batch);
@@ -146,17 +165,17 @@ bool LocalCachedUtil::update_job(const JobDef &job) {
 bool LocalCachedUtil::del_job(const uint64_t &job_id) {
 
   const std::string jobid = _id_to_string(job_id);
-  leveldb::Slice startkey(JOB_RALATED + jobid + _id_to_string(0));
+  leveldb::Slice range(RALATED + jobid);
 
   //scan all node list related with jobid;
-  auto node_list = _scan_range(startkey);
+  auto node_list = _scan_range(range);
 
   leveldb::WriteBatch batch;
   //# 第一步 删除有job关联 kv对
-  for(const auto& nid : node_list) {
-    batch.Delete(RESERVE_RALATED + nid + jobid);
-    batch.Delete(REGULAR_RALATED + nid + jobid);
-    batch.Delete(JOB_RALATED + jobid + nid);
+  for (const auto &nid : node_list) {
+    batch.Delete(FRESH + nid + jobid);
+    batch.Delete(OLD + nid + jobid);
+    batch.Delete(RALATED + jobid + nid);
   }
   batch.Delete(JOBKEY + jobid);
 
@@ -167,42 +186,52 @@ bool LocalCachedUtil::del_job(const uint64_t &job_id) {
 bool LocalCachedUtil::get_fresh_task_list(const uint64_t &node_id,
                                           TaskMap *tasks) {
   const std::string nodeid = _id_to_string(node_id);
-  leveldb::Slice startkey(RESERVE_RALATED + nodeid + _id_to_string(0));
-  auto jobid_list = _scan_range(startkey);
+  leveldb::Slice range(FRESH + nodeid);
+  auto jobid_list = _scan_key_range(range);
   TaskDef t;
-  for (const auto& id : jobid_list) {
+  for (const auto &id : jobid_list) {
     Slice key(JOBKEY + id);
     std::string val;
-    _db->Get(leveldb::ReadOptions(),key, &val);
-    if(t.ParseFromString(val))
-      tasks->insert({decode_fixed64(id.c_str()),t});
+    _db->Get(leveldb::ReadOptions(), key, &val);
+    if (t.ParseFromString(val))
+      tasks->insert({decode_fixed64(id.c_str()), t});
   }
-  return true;
+
+  Slice emptyval{};
+  leveldb::WriteBatch batch;
+  for (const auto &jobid : jobid_list) {
+    Slice skey{FRESH + nodeid + jobid};
+    Slice rkey{OLD + nodeid + jobid};
+    batch.Delete(skey);
+    batch.Put(rkey, emptyval);
+  }
+  auto s = _db->Write(leveldb::WriteOptions(), &batch);
+  return s.ok();
 }
 
 bool LocalCachedUtil::get_whole_task_list(const uint64_t &node_id,
                                           TaskMap *tasks) {
 
   const std::string nodeid = _id_to_string(node_id);
-  leveldb::Slice startkey(RESERVE_RALATED + nodeid + _id_to_string(0));
-  auto jobid_list = _scan_range(startkey);
+  leveldb::Slice range(FRESH + nodeid);
+  auto jobid_list = _scan_range(range);
   TaskDef t;
-  for (const auto& id : jobid_list) {
+  for (const auto &id : jobid_list) {
     Slice key(JOBKEY + id);
     std::string val;
-    _db->Get(leveldb::ReadOptions(),key, &val);
-    if(t.ParseFromString(val))
-      tasks->insert({decode_fixed64(id.c_str()),t});
+    _db->Get(leveldb::ReadOptions(), key, &val);
+    if (t.ParseFromString(val))
+      tasks->insert({decode_fixed64(id.c_str()), t});
   }
 
-  leveldb::Slice startkey2(REGULAR_RALATED + nodeid + _id_to_string(0));
-  auto jobid2_list = _scan_range(startkey);
-  for (const auto& id : jobid2_list) {
+  leveldb::Slice range2(OLD + nodeid);
+  auto jobid2_list = _scan_range(range2);
+  for (const auto &id : jobid2_list) {
     Slice key(JOBKEY + id);
     std::string val;
-    _db->Get(leveldb::ReadOptions(),key, &val);
-    if(t.ParseFromString(val))
-      tasks->insert({decode_fixed64(id.c_str()),t});
+    _db->Get(leveldb::ReadOptions(), key, &val);
+    if (t.ParseFromString(val))
+      tasks->insert({decode_fixed64(id.c_str()), t});
   }
 
   return true;
@@ -217,11 +246,14 @@ bool LocalCachedUtil::get_count(const uint64_t &node_id, uint64_t *count) {
   return false;
 }
 
-LocalCachedUtil::LocalCachedUtil(const std::string &path, Options *option) {
+LocalCachedUtil::LocalCachedUtil(Options *option) {
 
   _options.create_if_missing = true;
+  mkdir_if_not_exists(option->get_cachefile_path());
 
-  leveldb::Status status = leveldb::DB::Open(_options, "/tmp/testdb", &_db);
+  leveldb::Status status = leveldb::DB::Open(_options,
+                                             option->get_cachefile_path() +
+                                             "cacheddb", &_db);
   assert(status.ok());
 }
 
@@ -244,18 +276,71 @@ LocalCachedUtil::~LocalCachedUtil() {
 //  return id_list;
 //}
 
-std::vector<string> LocalCachedUtil::_scan_range(const Slice &start) {
-  std::vector<string> task_list{};
+std::vector<string> LocalCachedUtil::_scan_key_range(const Slice &range) {
+  std::vector<string> key_list{};
+  const auto LENGTH = range.size();
   shared_ptr<leveldb::Iterator> iter(_db->NewIterator(leveldb::ReadOptions()));
 
-  for (iter->Seek(start);
-       iter->Valid() && in_range_compare(start, iter->key());
+  for (iter->Seek(range); iter->Valid() && iter->key().starts_with(range);
+       iter->Next()) {
+    std::string val((iter->key().data() + LENGTH), iter->key().size() - LENGTH);
+    key_list.push_back(val);
+  }
+  return key_list;
+}
+
+std::vector<string> LocalCachedUtil::_scan_range(const Slice &range) {
+  std::vector<string> task_list{};
+
+  shared_ptr<leveldb::Iterator> iter(_db->NewIterator(leveldb::ReadOptions()));
+
+  for (iter->Seek(range); iter->Valid() && iter->key().starts_with(range);
        iter->Next()) {
     task_list.push_back(iter->value().ToString());
   }
-
   return task_list;
 }
+
+uint64_t LocalCachedUtil::_scan_count(const Slice &range) {
+
+  uint64_t count = 0;
+  shared_ptr<leveldb::Iterator> iter(_db->NewIterator(leveldb::ReadOptions()));
+
+  for (iter->Seek(range);
+       iter->Valid() && iter->key().starts_with(range);
+       iter->Next()) {
+    ++count;
+  }
+  return count;
+}
+
+uint64_t LocalCachedUtil::get_range_count(const std::string &range) {
+
+  return _scan_count(range);
+}
+
+void LocalCachedUtil::print_all() {
+  shared_ptr<leveldb::Iterator> iter(_db->NewIterator(leveldb::ReadOptions()));
+
+  for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
+
+    auto key = iter->key();
+    std::cout << "iter key size: " << key.size() << "\t";
+    if (key.size() == 9) {
+      std::cout << key[0] << decode_fixed64(key.data() + 1) << std::endl;
+    } else if (key.size() == 17) {
+      std::cout << key[0] << decode_fixed64(key.data() + 1) <<
+      decode_fixed64(key.data() + 9) << std::endl;
+    }
+
+  }
+}
+
+
+
+
+
+
 
 //
 //void LocalCachedUtil::_scan_range(const Slice &startkey,
@@ -266,9 +351,9 @@ std::vector<string> LocalCachedUtil::_scan_range(const Slice &start) {
 
 
 std::unique_ptr<LocalCachedUtilInterface> LevelDBCachedUtilUniquePtr(
-    const std::string &path, Options *option) {
+    Options *option) {
 
-  return make_unique<LocalCachedUtil>(path, option);
+  return make_unique<LocalCachedUtil>(option);
 
 }
 

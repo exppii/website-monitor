@@ -10,9 +10,3 @@ set(LINK_LIBS grpc grpc++_unsecure protobuf dl leveldb)
 add_executable(taskserver ${SOURCE_FILES} ${HEDER_FILES})
 # add_dependencies(taskserver generated_code)
 target_link_libraries(taskserver ${LINK_LIBS})
-
-
-#build example for test
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    add_subdirectory(test)
-endif()

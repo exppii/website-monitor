@@ -19,8 +19,8 @@ namespace taskserver {
 class Master {
 
 public:
-  Master(const std::string& path, Options * options)
-      :_cache_util(LevelDBCachedUtilUniquePtr(path,options)) {}
+  Master(Options * options)
+      :_cache_util(LevelDBCachedUtilUniquePtr(options)) {}
 // Convenient typedef for a closure passing a Status.
   typedef std::function<void(const ::grpc::Status&)> closure;
 

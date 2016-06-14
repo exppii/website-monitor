@@ -13,8 +13,7 @@ namespace taskserver {
 
 class Options;
 
-std::unique_ptr <LocalCachedUtilInterface> LevelDBCachedUtilUniquePtr(
-    const std::string&, Options *);
+std::unique_ptr <LocalCachedUtilInterface> LevelDBCachedUtilUniquePtr(Options *);
 
 
 } //namespace taskserver
