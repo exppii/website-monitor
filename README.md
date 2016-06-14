@@ -8,4 +8,6 @@
 
 * protobuf 3.0
 
+* leveldb >= 1.18
+
 ### 在Centos7上安装

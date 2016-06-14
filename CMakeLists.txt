@@ -98,7 +98,7 @@ FOREACH(_filepath ${CONFIG_FILES})
 ENDFOREACH()
 
 add_subdirectory(taskserver)
-#add_subdirectory(webclient)
+add_subdirectory(cwebclient)
 add_subdirectory(node)
 
 
