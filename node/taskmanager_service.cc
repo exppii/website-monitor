@@ -77,8 +77,9 @@ bool NodeTaskManager::add_task(const std::map<int64_t, TaskSharedPtr> &tasks) {
   for (auto t = _reserve_task->begin(); t != _reserve_task->end();) {
     tasks.find(t->first) != tasks.end() ? t = _reserve_task->erase(t) : ++t;
   }
-  _logger->info("add new tasks to reserve task list");
+
   _reserve_task->insert(tasks.cbegin(), tasks.cend());
+  _logger->info("add tasks to reserve task list, current reserve task size {}", _reserve_task->size());
   return false;
 }
 
@@ -105,17 +106,22 @@ void NodeTaskManager::_work_thread() {
 
   while (_running) {
 
-    _logger->debug("try move reserved task to regular list.");
     _mv_reserved_to_regular();
     //drop expired task
     for (auto t = _regular_task->begin(); t != _regular_task->end();) {
-      t->second->is_expired() ? t = _regular_task->erase(t) : ++t;
+      if(t->second->is_expired()) {
+        _logger->info("job {} is expired now remove it from regular list,", t->first);
+        t = _regular_task->erase(t);
+      } else {
+        ++t;
+      }
     }
 
     {
       //store current run task size
       std::unique_lock<mutex> mlock(_regular_mtx);
       _count = _regular_task->size();
+      _logger->debug("current regular list size: {}.", _count);
     }
 
     _do_assign_task(&task_result);
@@ -134,8 +140,14 @@ void NodeTaskManager::_mv_reserved_to_regular() {
     ? t = _regular_task->erase(t) : ++t;
   }
   //mv new tasks to old maps
-  _regular_task->insert(_reserve_task->cbegin(), _reserve_task->cend());
-  _reserve_task->clear();
+
+  if(_reserve_task->size() > 0) {
+    _logger->debug("New task size is {}. Add to run list.",_reserve_task->size());
+    _regular_task->insert(_reserve_task->cbegin(), _reserve_task->cend());
+    _reserve_task->clear();
+  }
+
+
 }
 
 void NodeTaskManager::_do_assign_task(std::vector<std::future<bool>>* result) {

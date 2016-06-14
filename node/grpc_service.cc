@@ -144,8 +144,9 @@ void GrpcService::_report_thread() {
 void GrpcService::_fetchjob_thread() {
   _logger->info("current fetch frequency: {}. ", _info.fetch_frequency);
   while (_running) {
-    _logger->debug("fetch tasks from task server.");
+
     std::this_thread::sleep_for(seconds(_info.fetch_frequency));
+    _logger->debug("fetch tasks from task server.");
     //TODO do fetch
     GetJobResponse resp{};
     _info.req.set_running_task_count(_task_manager->running_count());

@@ -22,8 +22,9 @@ void init_job_list(std::vector<JobDef> &job_list) {
     task->set_frequency(i);
     task->set_dest("baidu.com");
     task->set_type(webmonitor::TaskDef::HTTP);
+    task->set_status(webmonitor::TaskDef::RUN);
 
-    job.add_node_list(10);
+    job.add_node_list(1000);
     job.add_node_list(20);
     job.add_node_list(30);
     if (i % 2 == 0) {
