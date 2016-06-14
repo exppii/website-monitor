@@ -41,6 +41,7 @@ const std::string JOBKEY = "j"; //job jobcontent kv pre
 const std::string FRESH = "f"; //fresh node job relationship pre
 const std::string OLD = "o"; //old node job relationship pre
 const std::string RALATED = "r"; //job node relationship pre relate
+const std::string TRASH = "t"; //delete job relationship
 const size_t LONG_SIZE = 8;
 
 //
@@ -75,6 +76,8 @@ public:
                             const uint64_t &node_id) override;
 
   uint64_t get_count(const uint64_t &node_id) override;
+
+  bool get_delete_task_list(const uint64_t& node_id,  IdList* ids) override;
 
   uint64_t get_range_count(const std::string &range) override;
 
@@ -164,20 +167,22 @@ bool LocalCachedUtil::update_job(const JobDef &job) {
 
 bool LocalCachedUtil::del_job(const uint64_t &job_id) {
 
-  const std::string jobid = _id_to_string(job_id);
-  leveldb::Slice range(RALATED + jobid);
+  const std::string j = _id_to_string(job_id);
+  leveldb::Slice range(RALATED + j);
 
   //scan all node list related with jobid;
   auto node_list = _scan_key_range(range);
 
   leveldb::WriteBatch batch;
   //# 第一步 删除有job关联 kv对
-  for (const auto &nid : node_list) {
-    batch.Delete(FRESH + nid + jobid);
-    batch.Delete(OLD + nid + jobid);
-    batch.Delete(RALATED + jobid + nid);
+  Slice emptyval{};
+  for (const auto &n : node_list) {
+    batch.Delete(FRESH + n + j);
+    batch.Delete(OLD + n + j);
+    batch.Delete(RALATED + j + n);
+    batch.Put(TRASH + n + j, emptyval);
   }
-  batch.Delete(JOBKEY + jobid);
+  batch.Delete(JOBKEY + j);
 
   auto s = _db->Write(leveldb::WriteOptions(), &batch);
   return s.ok();
@@ -185,26 +190,27 @@ bool LocalCachedUtil::del_job(const uint64_t &job_id) {
 
 bool LocalCachedUtil::get_fresh_task_list(const uint64_t &node_id,
                                           TaskMap *tasks) {
-  const std::string nodeid = _id_to_string(node_id);
-  leveldb::Slice range(FRESH + nodeid);
+  const std::string n = _id_to_string(node_id);
+  Slice range(FRESH + n), emptyval{};
   auto jobid_list = _scan_key_range(range);
+
   TaskDef t;
-  for (const auto &id : jobid_list) {
-    Slice key(JOBKEY + id);
+  leveldb::WriteBatch batch;
+
+  for (const auto &j : jobid_list) {
+    Slice key(JOBKEY + j);
     std::string val;
     _db->Get(leveldb::ReadOptions(), key, &val);
     if (t.ParseFromString(val))
-      tasks->insert({decode_fixed64(id.c_str()), t});
-  }
+      tasks->insert({decode_fixed64(j.c_str()), t});
 
-  Slice emptyval{};
-  leveldb::WriteBatch batch;
-  for (const auto &jobid : jobid_list) {
-    Slice skey{FRESH + nodeid + jobid};
-    Slice rkey{OLD + nodeid + jobid};
+    Slice skey{FRESH + n + j};
+    Slice rkey{OLD + n + j};
     batch.Delete(skey);
     batch.Put(rkey, emptyval);
+
   }
+
   auto s = _db->Write(leveldb::WriteOptions(), &batch);
   return s.ok();
 }
@@ -229,6 +235,23 @@ bool LocalCachedUtil::get_whole_task_list(const uint64_t &node_id,
   }
 
   return true;
+}
+
+bool LocalCachedUtil::get_delete_task_list(const uint64_t& node_id, IdList* ids) {
+
+  const std::string n = _id_to_string(node_id);
+  leveldb::Slice range(TRASH + n);
+  auto jobid_list = _scan_key_range(range);
+
+  leveldb::WriteBatch batch;
+  for (const auto &j : jobid_list) {
+    ids->Add(decode_fixed64(j.c_str()));
+    Slice key{TRASH + n + j};
+    batch.Delete(key);
+  }
+
+  auto s = _db->Write(leveldb::WriteOptions(), &batch);
+  return s.ok();
 }
 
 bool LocalCachedUtil::store_task_node_ship(const uint64_t &job_id,

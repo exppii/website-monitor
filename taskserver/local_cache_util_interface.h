@@ -21,6 +21,7 @@ class LocalCachedUtilInterface {
 public:
 
   using TaskMap = ::google::protobuf::Map< ::google::protobuf::uint64, TaskDef>;
+  using IdList = ::google::protobuf::RepeatedField<::google::protobuf::uint64>;
 
   LocalCachedUtilInterface() = default;
   virtual ~LocalCachedUtilInterface(){}
@@ -44,9 +45,12 @@ public:
 
   virtual uint64_t get_count(const uint64_t& node_id) = 0;
 
+  virtual bool get_delete_task_list(const uint64_t& node_id,  IdList* ids) = 0;
+
+  //for test
   virtual uint64_t get_range_count(const std::string& range) = 0;
 
-  //test
+  //for test
   virtual void print_all() = 0;
 
 };

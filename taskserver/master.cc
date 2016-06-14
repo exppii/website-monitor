@@ -81,6 +81,8 @@ void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
         req->running_task_count(), local, req->node_id());
     _cache_util->get_whole_task_list(req->node_id(), m);
   }
+  auto l = resp->mutable_dropped_list();
+  _cache_util->get_delete_task_list(req->node_id(),l);
 
   done(grpc::Status::OK);
 }
@@ -97,8 +99,3 @@ void Master::report_status(const ReportStatusRequest *req,
 } //namespace taskserver
 
 } //namespace webmonitor
-
-
-
-
-

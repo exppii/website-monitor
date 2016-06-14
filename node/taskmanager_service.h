@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <map>
+#include <vector>
 #include <node/task/task_interface.h>
 
 #include "common/service_interface.h"
@@ -28,7 +29,9 @@ class TaskManagerInterface : public ServiceInterface {
 public:
   virtual ~TaskManagerInterface(){}
 
-  virtual bool add_task(const std::map<int64_t, TaskSharedPtr>& ) = 0;
+  virtual bool add_task(const std::map<uint64_t, TaskSharedPtr>& ) = 0;
+
+  virtual bool del_task(const std::vector<uint64_t>&) = 0;
 
   virtual size_t running_count() = 0;
 

@@ -9,7 +9,7 @@
 # ::
 #
 #   gRPC_INCLUDE_DIRS   - where to find json/josn.h, etc.
-#   gRPC_LIBRARIES      - List of libraries when using json.
+#   gRPC_LIBRARY_DIRS      - List of libraries when using json.
 #   gRPC_FOUND          - True if json found.
 #   gRPC_VERSION_STRING - the version of json found
 
@@ -82,6 +82,6 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(gRPC
                                   VERSION_VAR gRPC_VERSION_STRING)
 
 if(gRPC_FOUND)
-  set(gRPC_LIBRARIES ${gRPC_LIBRARY})
+  get_filename_component(gRPC_LIBRARY_DIRS ${gRPC_LIBRARY} DIRECTORY)
   set(gRPC_INCLUDE_DIRS ${gRPC_INCLUDE_DIR})
 endif()

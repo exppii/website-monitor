@@ -75,7 +75,7 @@ private:
   void _report_thread();
 
   size_t _parser_task_to_map(const GetJobResponse &resp,
-                             std::map<int64_t, TaskSharedPtr> *task_map);
+                             std::map<uint64_t, TaskSharedPtr> *task_map);
 
 
 private:
@@ -158,20 +158,20 @@ void GrpcService::_fetchjob_thread() {
       continue;
     }
 
-    std::map<int64_t, TaskSharedPtr> task_maps{};
+    std::map<uint64_t, TaskSharedPtr> task_maps{};
 
     if (_parser_task_to_map(resp, &task_maps) > 0) {
       _logger->info("fetch {} tasks, now push to taskmanager.",
                     task_maps.size());
       _task_manager->add_task(task_maps);
     }
-
+    
 
   }
 }
 
 size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
-                                        std::map<int64_t, TaskSharedPtr> *task_map) {
+                                        std::map<uint64_t, TaskSharedPtr> *task_map) {
   TaskFactory factory;
   for (const auto &raw : resp.task_map()) {
     auto task = factory.create(&raw.second, _data_proc);

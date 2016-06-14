@@ -36,7 +36,9 @@ public:
     _logger->info("Init task manager service...");
   }
 
-  bool add_task(const std::map<int64_t, TaskSharedPtr> &) override;
+  bool add_task(const std::map<uint64_t, TaskSharedPtr> &) override;
+
+  bool del_task(const std::vector<uint64_t>&) override;
 
   size_t running_count() override ;
 
@@ -53,7 +55,7 @@ private:
   void _do_assign_task(std::vector<std::future<bool>>*);
 
 private:
-  using TaskMapUniquePtr = std::unique_ptr<std::map<int64_t, TaskSharedPtr>>;
+  using TaskMapUniquePtr = std::unique_ptr<std::map<uint64_t, TaskSharedPtr>>;
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
@@ -64,14 +66,17 @@ private:
   std::unique_ptr<thread> _thread{nullptr};
   std::mutex _reserve_mtx;
   std::mutex _regular_mtx;
+  std::mutex _del_mtx;
 
-  TaskMapUniquePtr _reserve_task{make_unique<map<int64_t, TaskSharedPtr>>()};
+  TaskMapUniquePtr _reserve_task{make_unique<map<uint64_t, TaskSharedPtr>>()};
 
-  TaskMapUniquePtr _regular_task{make_unique<map<int64_t, TaskSharedPtr>>()};
+  TaskMapUniquePtr _regular_task{make_unique<map<uint64_t, TaskSharedPtr>>()};
+
+  std::vector<uint64_t> _to_be_del_list;
 
 };
 
-bool NodeTaskManager::add_task(const std::map<int64_t, TaskSharedPtr> &tasks) {
+bool NodeTaskManager::add_task(const std::map<uint64_t, TaskSharedPtr> &tasks) {
   std::unique_lock<mutex> mlock(_reserve_mtx);
   _logger->debug("remove same task in reserve task list.");
   for (auto t = _reserve_task->begin(); t != _reserve_task->end();) {
@@ -81,6 +86,13 @@ bool NodeTaskManager::add_task(const std::map<int64_t, TaskSharedPtr> &tasks) {
   _reserve_task->insert(tasks.cbegin(), tasks.cend());
   _logger->info("add tasks to reserve task list, current reserve task size {}", _reserve_task->size());
   return false;
+}
+
+bool NodeTaskManager::del_task(const std::vector<uint64_t>& ids) {
+  std::unique_lock<mutex> mlock(_del_mtx);
+  _to_be_del_list.insert(_to_be_del_list.end(),ids.cbegin(), ids.cend());
+
+  _logger->info("add ids to reserve deleted list");
 }
 
 void NodeTaskManager::start() {
@@ -108,14 +120,15 @@ void NodeTaskManager::_work_thread() {
 
     _mv_reserved_to_regular();
     //drop expired task
-    for (auto t = _regular_task->begin(); t != _regular_task->end();) {
-      if(t->second->is_expired()) {
-        _logger->info("job {} is expired now remove it from regular list,", t->first);
-        t = _regular_task->erase(t);
-      } else {
-        ++t;
+    {
+      std::unique_lock<mutex> mlock(_del_mtx);
+      for(const auto& j : _to_be_del_list) {
+        _logger->info("job {} is expired now remove it from regular list,", j);
+        _regular_task->erase(j);
       }
+      _to_be_del_list.clear();
     }
+
 
     {
       //store current run task size

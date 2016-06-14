@@ -142,6 +142,7 @@ message GetJobRequest {
 
 message GetJobResponse {
   map<uint64, TaskDef> task_map = 1;
+  repeated uint64 dropped_list = 2;
 }
 
 //only used on node client

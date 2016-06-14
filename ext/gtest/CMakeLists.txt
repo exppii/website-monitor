@@ -4,8 +4,8 @@ include(ExternalProject)
 
 ExternalProject_Add(googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-        -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
+        CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=libs
+        -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=libs
         -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
         -Dgtest_force_shared_crt=ON
         -DBUILD_GTEST=ON
