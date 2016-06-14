@@ -18,7 +18,7 @@ using namespace webmonitor;
 
 int main(int argc, char const *argv[]) {
 
-  taskserver::Options opt("../conf/node_service.config");
+  taskserver::Options opt("../conf/taskserver.config");
   //create logs dir to save log files.
   mkdir_if_not_exists("../logs");
 
@@ -32,9 +32,11 @@ int main(int argc, char const *argv[]) {
 
   logger->info("current version: 0.1.0");
 
-  logger->info(" init server: 0.0.0.0:50051 ");
+  const std::string server_address =
+      opt.get_listen_addr() + ":" + std::to_string(opt.get_listen_port());
 
-  std::string server_address("0.0.0.0:50051");
+  logger->info(" init server: {}", server_address);
+
 
   //auto builder = std::make_unique<grpc::ServerBuilder>();
   grpc::ServerBuilder builder;

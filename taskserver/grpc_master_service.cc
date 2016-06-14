@@ -6,6 +6,7 @@
 
 #include <mutex>
 #include <grpc++/server_builder.h>
+#include <grpc++/alarm.h>
 
 #include "taskserver/master.h"
 #include "taskserver/logger.h"
@@ -27,10 +28,10 @@ namespace taskserver {
 class GrpcMasterService : public AsyncServiceInterface {
 public:
   GrpcMasterService(::grpc::ServerBuilder* builder, Options* options)
-      :_master_impl(new Master("../localdb", options)) {
+      :_master_impl(new Master(options)) {
     _logger->info("init grpc master service...");
     builder->RegisterService(&_service);
-    _logger->info("add completion queue .");
+    _logger->info("add completion queue.");
     _cq = builder->AddCompletionQueue().release();
   }
 
@@ -56,7 +57,7 @@ public:
 
   //TODO using multi thread and async
   void handle_grpc_loop() override {
-    _logger->info("push all resquse handle...");
+    _logger->info("push all resquire handle...");
     ENQUEUE_REQUEST(CreateJob, false);
     ENQUEUE_REQUEST(UpdateJob,true);
     ENQUEUE_REQUEST(DeleteJob,true);
@@ -92,8 +93,8 @@ public:
       }
     }
     if(did_shutdown) {
-//      _shutdown_alarm = new ::grpc::Alarm(_cq,gpr_now(GPR_CLOCK_MONOTONIC),
-//                                          nullptr);
+     _shutdown_alarm = new ::grpc::Alarm(_cq,gpr_now(GPR_CLOCK_MONOTONIC),
+                                         nullptr);
     }
   }
 
@@ -110,7 +111,7 @@ private:
   MasterService::AsyncService _service;
   ::grpc::ServerCompletionQueue* _cq;  // Owned.
   Master* _master_impl;                // Owned.
-  // ::grpc::Alarm* _shutdown_alarm;
+  ::grpc::Alarm* _shutdown_alarm;
 
   std::mutex _mtx;
 
@@ -131,7 +132,7 @@ private:
                              [call](const ::grpc::Status& status) {
                                call->SendResponse(status);
                              });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(UpdateJob, true);
   }
 
   void DeleteJobHandler(MasterCall<DeleteJobRequest, DeleteJobResponse>* call) {
@@ -139,7 +140,7 @@ private:
                              [call](const ::grpc::Status& status) {
                                call->SendResponse(status);
                              });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(DeleteJob, true);
   }
 
   void ListJobStatusHandler(MasterCall<ListJobStatusRequest, ListJobStatusResponse>* call) {
@@ -147,7 +148,7 @@ private:
                                   [call](const ::grpc::Status& status) {
                                     call->SendResponse(status);
                                   });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(ListJobStatus, true);
   }
 
   void ListNodeStatusHandler(MasterCall<ListNodeStatusRequest, ListNodeStatusResponse>* call) {
@@ -155,7 +156,7 @@ private:
                                    [call](const ::grpc::Status& status) {
                                      call->SendResponse(status);
                                    });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(ListNodeStatus, true);
   }
 
   void GetJobHandler(MasterCall<GetJobRequest, GetJobResponse>* call) {
@@ -163,7 +164,7 @@ private:
                           [call](const ::grpc::Status& status) {
                             call->SendResponse(status);
                           });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(GetJob, true);
   }
 
   void ReportStatusHandler(MasterCall<ReportStatusRequest, ReportStatusResponse>* call) {
@@ -171,7 +172,7 @@ private:
                                 [call](const ::grpc::Status& status) {
                                   call->SendResponse(status);
                                 });
-    ENQUEUE_REQUEST(CreateJob, true);
+    ENQUEUE_REQUEST(ReportStatus, true);
   }
 
 };
@@ -185,5 +186,3 @@ std::unique_ptr<AsyncServiceInterface> GrpcMasterServicePtr(::grpc::ServerBuilde
 } //namespace taskserver
 
 } //namespace elon
-
-

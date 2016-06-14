@@ -35,9 +35,6 @@ public:
   void report_status(const ReportStatusRequest* req, ReportStatusResponse* resp, closure done);
   void get_job(const GetJobRequest* req, GetJobResponse* resp, closure done);
 
-private:
-
-  bool _running_task_count_match_in_local(const uint64_t& node_id, const uint64_t& count);
 
 private:
 
