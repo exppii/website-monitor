@@ -136,8 +136,8 @@ TEST_F(LocalCacheTest, HandleGetTheWholeTask) {
 
   webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap;
   webmonitor::taskserver::LocalCachedUtilInterface::IdList idlist;
-  EXPECT_TRUE(cache->get_fresh_task_list(40,&taskmap));
   EXPECT_TRUE(cache->get_delete_task_list(40,&idlist));
+  EXPECT_TRUE(cache->get_fresh_task_list(40,&taskmap));
   EXPECT_EQ(1, taskmap.size());
   EXPECT_EQ(0, idlist.size());
   EXPECT_EQ(24, cache->get_range_count(OLD)); //10 + 5
@@ -145,8 +145,8 @@ TEST_F(LocalCacheTest, HandleGetTheWholeTask) {
 
   webmonitor::taskserver::LocalCachedUtilInterface::TaskMap taskmap2;
   webmonitor::taskserver::LocalCachedUtilInterface::IdList idlist2;
-  EXPECT_TRUE(cache->get_whole_task_list(10,&taskmap2));
   EXPECT_TRUE(cache->get_delete_task_list(10,&idlist2));
+  EXPECT_TRUE(cache->get_whole_task_list(10,&taskmap2));
   EXPECT_EQ(10, taskmap2.size());
   EXPECT_EQ(1, idlist2.size());
 

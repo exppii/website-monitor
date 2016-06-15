@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 project(WebsiteMonitor)
 
 # set version
-set(ELONSERVER_VERSION "0.1.1")
+set(ELONSERVER_VERSION "0.1.2")
 #
 # Debugging Options
 #

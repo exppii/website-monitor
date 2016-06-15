@@ -159,8 +159,10 @@ void GrpcService::_fetchjob_thread() {
     }
 
     std::vector<uint64_t> droplist(resp.dropped_list().cbegin(),resp.dropped_list().cend());
-
-    _task_manager->del_task(droplist);
+    if (droplist.size() > 0) {
+      _logger->info("get drop list from server. now push the list to taskmanager.");
+      _task_manager->del_task(droplist);
+    }
 
     std::map<uint64_t, TaskSharedPtr> task_maps{};
 
@@ -169,8 +171,8 @@ void GrpcService::_fetchjob_thread() {
                     task_maps.size());
       _task_manager->add_task(task_maps);
     }
-    
-    
+
+
 
   }
 }

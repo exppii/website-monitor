@@ -69,11 +69,15 @@ void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
                      closure done) {
   _logger->info("received one get job command from node: {}", req->node_id());
 
+  auto l = resp->mutable_dropped_list();
+  _cache_util->get_delete_task_list(req->node_id(),l);
+
   auto m = resp->mutable_task_map();
 
   auto local = _cache_util->get_count(req->node_id());
 
-  if (local == req->running_task_count()) {
+  if ((local + l->size()) == req->running_task_count()) {
+
     _cache_util->get_fresh_task_list(req->node_id(), m);
   } else {
     _logger->warn(
@@ -81,8 +85,6 @@ void Master::get_job(const GetJobRequest *req, GetJobResponse *resp,
         req->running_task_count(), local, req->node_id());
     _cache_util->get_whole_task_list(req->node_id(), m);
   }
-  auto l = resp->mutable_dropped_list();
-  _cache_util->get_delete_task_list(req->node_id(),l);
 
   done(grpc::Status::OK);
 }

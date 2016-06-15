@@ -14,7 +14,7 @@ using namespace webmonitor;
 
 void init_job_list(std::vector<JobDef> &job_list) {
 
-  for (int i = 1; i < 11; i++) {
+  for (int i = 1; i < 3; i++) {
     JobDef job;
     job.set_id(i * 1000);
     auto task = job.mutable_task();
@@ -49,27 +49,52 @@ int main(int argc, char const *argv[]) {
   std::vector<JobDef> job_list;
 
   init_job_list(job_list);
-  CreateJobRequest req;
-  CreateJobResponse resp;
-  for (const auto &job: job_list) {
 
-    req.mutable_job()->CopyFrom(job);
+  {
+    CreateJobRequest req;
+    CreateJobResponse resp;
+    for (const auto &job: job_list) {
 
-    std::cout << "now create one job : " << job.id() << std::endl;
-    auto status = grpc_master->create_job(req, &resp);
+      req.mutable_job()->CopyFrom(job);
+
+      std::cout << "now create one job : " << job.id() << std::endl;
+      auto status = grpc_master->create_job(req, &resp);
+
+      if (!status.ok()) {
+        std::cout << "create job " << job.id() << "failed. error code: " <<
+        status.error_code() << " error message: " << status.error_message();
+      } else {
+        std::cout << "job: " << job.id() << " ret message: " <<
+        resp.response().message() << std::endl;
+      }
+
+
+      std::this_thread::sleep_for(std::chrono::seconds(30));
+
+    }
+  }
+  //std::this_thread::sleep_for(std::chrono::seconds(30));
+  {
+    DeleteJobRequest req;
+    DeleteJobResponse resp;
+    std::cout << "now dele one job : " << 1000 << std::endl;
+
+    req.set_job_id(1000);
+
+    auto status = grpc_master->delete_job(req, &resp);
 
     if (!status.ok()) {
-      std::cout << "create job " << job.id() << "failed. error code: " <<
+      std::cout << "del job " << 1000 << "failed. error code: " <<
       status.error_code() << " error message: " << status.error_message();
     } else {
-      std::cout << "job: " << job.id() << " ret message: " <<
+      std::cout << "job: " << 1000 << " ret message: " <<
       resp.response().message() << std::endl;
     }
 
-
-    std::this_thread::sleep_for(std::chrono::seconds(30));
-
   }
+
+
+
 
 
   end = std::chrono::system_clock::now();

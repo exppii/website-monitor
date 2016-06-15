@@ -94,8 +94,6 @@ private:
 
   void _init_del_job_batch(const uint64_t& id, WriteBatch* batch);
 
-  void _init_get_job_batch(const string& n, const std::vector<string>& ids, WriteBatch* batch) const;
-
   size_t _read_task_map(const std::vector<string>& ids, TaskMap *tasks);
 
   //std::vector<uint64_t> _scan_id_range(const Slice &start, const Slice &end);
@@ -145,7 +143,10 @@ bool LocalCachedUtil::get_fresh_task_list(const uint64_t &node_id,
 
   leveldb::WriteBatch batch;
 
-  _init_get_job_batch(n, jobids, &batch);
+  for (const auto &j : jobids) {
+    batch.Delete(FRESH + n + j);
+    batch.Put(OLD + n + j, Slice());
+  }
 
   _read_task_map(jobids, tasks);
   auto s = _db->Write(leveldb::WriteOptions(), &batch);
@@ -159,7 +160,10 @@ bool LocalCachedUtil::get_whole_task_list(const uint64_t &node_id, TaskMap *task
 
   leveldb::WriteBatch batch;
 
-  _init_get_job_batch(n, fresh_ids, &batch);
+  for (const auto &j : fresh_ids) {
+    batch.Delete(FRESH + n + j);
+    batch.Put(OLD + n + j, Slice());
+  }
 
   auto old_ids = _scan_key_range(OLD + n);
 
@@ -242,14 +246,6 @@ void LocalCachedUtil::_init_del_job_batch(const uint64_t& id, leveldb::WriteBatc
 
 }
 
-void LocalCachedUtil::_init_get_job_batch(const string& n, const std::vector<string>& ids, WriteBatch* batch) const {
-  Slice emptyval{};
-  for (const auto &j : ids) {
-    batch->Delete(FRESH + n + j);
-    batch->Put(OLD + n + j, emptyval);
-  }
-
-}
 
 size_t LocalCachedUtil::_read_task_map(const std::vector<string>& ids, TaskMap *tasks) {
   size_t ret = tasks->size();
