@@ -158,6 +158,10 @@ void GrpcService::_fetchjob_thread() {
       continue;
     }
 
+    std::vector<uint64_t> droplist(resp.dropped_list().cbegin(),resp.dropped_list().cend());
+
+    _task_manager->del_task(droplist);
+
     std::map<uint64_t, TaskSharedPtr> task_maps{};
 
     if (_parser_task_to_map(resp, &task_maps) > 0) {
@@ -165,6 +169,7 @@ void GrpcService::_fetchjob_thread() {
                     task_maps.size());
       _task_manager->add_task(task_maps);
     }
+    
     
 
   }
