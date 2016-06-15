@@ -40,9 +40,6 @@ public:
 
   virtual bool get_whole_task_list(const uint64_t& node_id, TaskMap* tasks) = 0;
 
-  virtual bool store_task_node_ship(const uint64_t& job_id,
-                                    const uint64_t& node_id) = 0;
-
   virtual uint64_t get_count(const uint64_t& node_id) = 0;
 
   virtual bool get_delete_task_list(const uint64_t& node_id,  IdList* ids) = 0;
@@ -50,9 +47,10 @@ public:
   //for test
   virtual uint64_t get_range_count(const std::string& range) = 0;
 
+#ifndef NDEBUG
   //for test
   virtual void print_all() = 0;
-
+#endif
 };
 
 } //namespace taskserver
