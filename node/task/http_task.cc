@@ -23,16 +23,15 @@ namespace node {
 class HttpTask :public TaskInterface {
 public:
 
-
   explicit HttpTask(const TaskDef *, DataProcServiceInterface *dataproc);
 
-  bool run() override ;
-
-  bool reach_time(const std::time_t&) override;
+  bool reach_time(const std::time_t&) const override;
 
   bool varify_task_content() const override;
 
-  bool is_expired() const override;
+protected:
+
+  bool _do_run() override;
 
 private:
 
@@ -46,14 +45,13 @@ private:
 
 };
 
-
 HttpTask::HttpTask(const TaskDef *task, DataProcServiceInterface *dataproc)
     : _task_def(*task), _dataproc(dataproc) {
   if(task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 //TODO
-bool HttpTask::run() {
+bool HttpTask::_do_run() {
 
   auto ret = false;
   node::CurlResponse resp;
@@ -78,11 +76,9 @@ bool HttpTask::_send_result(const std::string &result) {
 
 }
 
-bool HttpTask::is_expired() const {
-  return _task_def.status() == TaskDef::EXPIRE;
-}
 
-bool HttpTask::reach_time(const std::time_t & now) {
+bool HttpTask::reach_time(const std::time_t & now) const {
+  if(_is_running() || _task_def.status() == TaskDef::STOP) return false;
   auto dif = std::difftime(now, _last_run_time);
   return dif > _task_def.frequency();
 }

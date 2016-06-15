@@ -19,11 +19,14 @@ using std::make_unique;
 
 using std::vector;
 using std::map;
+using std::vector;
 using std::string;
 using std::shared_ptr;
+using std::unique_ptr;
 using std::thread;
 using std::mutex;
 using std::make_shared;
+using std::chrono::seconds;
 
 namespace webmonitor {
 
@@ -38,9 +41,9 @@ public:
 
   bool add_task(const std::map<uint64_t, TaskSharedPtr> &) override;
 
-  bool del_task(const std::vector<uint64_t>&) override;
+  bool del_task(const std::vector<uint64_t> &) override;
 
-  size_t running_count() override ;
+  size_t running_count() override;
 
   void start() override;
 
@@ -50,9 +53,15 @@ private:
 
   void _work_thread();
 
+  void _run_task_thread();
+
   void _mv_reserved_to_regular();
 
-  void _do_assign_task(std::vector<std::future<bool>>*);
+  void _delete_expired_task();
+
+  void copy_task_running_map();
+
+  void _do_assign_task(map<uint64_t, std::future<bool>> *);
 
 private:
   using TaskMapUniquePtr = std::unique_ptr<std::map<uint64_t, TaskSharedPtr>>;
@@ -61,14 +70,18 @@ private:
 
   bool _running{true};
 
-  std::unique_ptr<thread> _thread{nullptr};
+  std::vector<thread> _threads{};
   std::mutex _reserve_mtx;
   std::mutex _regular_mtx;
+  std::mutex _run_mtx;
   std::mutex _del_mtx;
 
   TaskMapUniquePtr _reserve_task{make_unique<map<uint64_t, TaskSharedPtr>>()};
 
   TaskMapUniquePtr _regular_task{make_unique<map<uint64_t, TaskSharedPtr>>()};
+
+//copy running task point lest object destoryed when_regular_task erase the job
+  TaskMapUniquePtr _running_task{make_unique<map<uint64_t, TaskSharedPtr>>()};
 
   std::vector<uint64_t> _to_be_del_list;
 
@@ -82,13 +95,14 @@ bool NodeTaskManager::add_task(const std::map<uint64_t, TaskSharedPtr> &tasks) {
   }
 
   _reserve_task->insert(tasks.cbegin(), tasks.cend());
-  _logger->info("add tasks to reserve task list, current reserve task size {}", _reserve_task->size());
+  _logger->info("add tasks to reserve task list, current reserve task size {}",
+                _reserve_task->size());
   return false;
 }
 
-bool NodeTaskManager::del_task(const std::vector<uint64_t>& ids) {
+bool NodeTaskManager::del_task(const std::vector<uint64_t> &ids) {
   std::unique_lock<mutex> mlock(_del_mtx);
-  _to_be_del_list.insert(_to_be_del_list.end(),ids.cbegin(), ids.cend());
+  _to_be_del_list.insert(_to_be_del_list.end(), ids.cbegin(), ids.cend());
   _logger->debug("add drop list to 'to be del list', size: {}. ", ids.size());
   return true;
 }
@@ -98,58 +112,88 @@ void NodeTaskManager::start() {
 
   _running = true;
 
-  _thread.reset(new thread(&NodeTaskManager::_work_thread, this));
-
+  _threads.push_back(thread(&NodeTaskManager::_work_thread, this));
+  _threads.push_back(thread(&NodeTaskManager::_run_task_thread, this));
 }
 
 void NodeTaskManager::stop() {
   _running = false;
 
-  if (_thread && _thread->joinable()) _thread->join();
+  for (auto &t : _threads) {
+    if (t.joinable()) t.join();
+  }
+
   _logger->info("task manager thread stopped.");
 }
 
 void NodeTaskManager::_work_thread() {
 
-  _logger->info("init async result vector for task.");
-  std::vector<std::future<bool> > task_result;
-
   while (_running) {
 
     {
       std::unique_lock<mutex> mlock(_regular_mtx);
-      //drop expired task
-      {
-        std::unique_lock<mutex> mlock(_del_mtx);
-        if(_to_be_del_list.size() > 0) {
-          for(const auto& j : _to_be_del_list) {
-            _logger->info("job {} is delete by server, now remove it from regular list,", j);
-            _regular_task->erase(j);
-          }
-          _to_be_del_list.clear();
-        }
 
-      }
+      _delete_expired_task();
 
       _mv_reserved_to_regular();
+
+      copy_task_running_map();
 
       _logger->debug("current regular list size: {}.", _regular_task->size());
     }
 
-
-    _do_assign_task(&task_result);
-
-    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::this_thread::sleep_for(seconds(3));
   }
 
 }
+
+void NodeTaskManager::_run_task_thread() {
+
+  _logger->info("init async result vector for task.");
+
+  auto task_result = make_unique<map<uint64_t, std::future<bool>>>();
+  while (_running) {
+
+    {
+      std::unique_lock<mutex> mlock(_run_mtx);
+
+      if(_running_task->size() > 0 ) {
+
+        _logger->debug("current running task size {}.", _running_task->size());
+
+        for (auto &task : *_running_task) {
+          if(task_result->find(task.first) == task_result->end()) {
+            (*task_result)[task.first] = std::async(std::launch::async,
+                                                    &TaskInterface::run,
+                                                    task.second.get());
+          }
+        }
+
+        for (auto t = task_result->begin(); t != task_result->end();) {
+          if (t->second.wait_for(seconds(0)) == std::future_status::ready) {
+            _logger->debug("task {} is finish.", t->first);
+            _running_task->erase(t->first);
+            t = task_result->erase(t);
+          } else {
+            ++t;
+          }
+        }
+
+      }
+    }
+
+    std::this_thread::sleep_for(seconds(3));
+  }
+}
+
 
 //mv reserve_task
 void NodeTaskManager::_mv_reserved_to_regular() {
   std::unique_lock<mutex> mlock(_reserve_mtx);
   //remove task if id is contained in reserved task
-  if(_reserve_task->size() > 0) {
-    _logger->debug("New task size is {}. Add to run list.",_reserve_task->size());
+  if (_reserve_task->size() > 0) {
+    _logger->debug("New task size is {}. Add to run list.",
+                   _reserve_task->size());
 
     for (auto t = _regular_task->begin(); t != _regular_task->end();) {
       _reserve_task->find(t->first) != _reserve_task->end()
@@ -160,22 +204,32 @@ void NodeTaskManager::_mv_reserved_to_regular() {
     _reserve_task->clear();
   }
 
-
 }
 
-void NodeTaskManager::_do_assign_task(std::vector<std::future<bool>>* result) {
-  std::time_t now = std::time(nullptr);
-  for(auto& task : *_regular_task) {
-    if(task.second->reach_time(now)) {
-      result->push_back(std::async(std::launch::async,&TaskInterface::run, task.second.get()));
+void NodeTaskManager::_delete_expired_task() {
+  std::unique_lock<mutex> mlock(_del_mtx);
+  if (_to_be_del_list.size() > 0) {
+    for (const auto &j : _to_be_del_list) {
+      _logger->info(
+          "job {} is delete by server, now remove it from regular list,", j);
+      _regular_task->erase(j);
     }
+    _to_be_del_list.clear();
   }
 
-  result->erase(std::remove_if(result->begin(), result->end(), [](std::future<bool> &f) {
-    return (f.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
-  }), result->end());
-
 }
+
+void NodeTaskManager::copy_task_running_map() {
+  std::time_t now = std::time(nullptr);
+  std::unique_lock<mutex> mlock(_run_mtx);
+  //copy task object point to running map
+  for (auto &task : *_regular_task) {
+    if (task.second->reach_time(now)) {
+      _running_task->insert(task);
+    }
+  }
+}
+
 
 size_t NodeTaskManager::running_count() {
   std::unique_lock<mutex> mlock(_regular_mtx);

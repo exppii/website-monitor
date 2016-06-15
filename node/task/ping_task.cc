@@ -21,13 +21,13 @@ public:
 
   explicit PingTask(const TaskDef *, DataProcServiceInterface *dataproc);
 
-  bool run() override;
-
-  bool reach_time(const std::time_t &) override;
+  bool reach_time(const std::time_t&) const override;
 
   bool varify_task_content() const override;
 
-  bool is_expired() const override;
+protected:
+
+  bool _do_run() override;
 
 private:
 
@@ -46,7 +46,7 @@ PingTask::PingTask(const TaskDef *task, DataProcServiceInterface *dataproc)
 }
 
 //TODO
-bool PingTask::run() {
+bool PingTask::_do_run() {
   const std::string data = "run ping task.";
   _dataproc->add_data(data);
   return false;
@@ -57,11 +57,9 @@ bool PingTask::varify_task_content() const {
   return false;
 }
 
-bool PingTask::is_expired() const {
-  return _task_def.status() == TaskDef::EXPIRE;
-}
 
-bool PingTask::reach_time(const std::time_t &now) {
+bool PingTask::reach_time(const std::time_t &now) const {
+  if(_is_running() || _task_def.status() == TaskDef::STOP) return false;
   auto dif = std::difftime(now, _last_run_time);
   return dif > _task_def.frequency();
 }

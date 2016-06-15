@@ -22,13 +22,14 @@ public:
 
   explicit DNSTask(const TaskDef *, DataProcServiceInterface *dataproc);
 
-  bool run() override ;
-
-  bool reach_time(const std::time_t&) override;
+  bool reach_time(const std::time_t&) const override;
 
   bool varify_task_content() const override;
 
-  bool is_expired() const override;
+protected:
+
+  bool _do_run() override;
+
 private:
 
   TaskDef _task_def;
@@ -45,7 +46,7 @@ DNSTask::DNSTask(const TaskDef *task, DataProcServiceInterface *dataproc)
 }
 
 //TODO
-bool DNSTask::run() {
+bool DNSTask::_do_run() {
   const std::string data = "run dns task.";
   _dataproc->add_data(data);
   return false;
@@ -56,11 +57,9 @@ bool DNSTask::varify_task_content() const {
   return false;
 }
 
-bool DNSTask::is_expired() const {
-  return _task_def.status() == TaskDef::EXPIRE;
-}
 
-bool DNSTask::reach_time(const std::time_t & now) {
+bool DNSTask::reach_time(const std::time_t & now) const {
+  if(_is_running() || _task_def.status() == TaskDef::STOP) return false;
   auto dif = std::difftime(now, _last_run_time);
   return dif > _task_def.frequency();
 }
