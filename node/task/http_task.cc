@@ -55,8 +55,21 @@ bool HttpTask::_do_run() {
 
   auto ret = false;
   node::CurlResponse resp;
-
-  curl_get(_task_def.dest(),&resp);
+  
+  switch (_content.method()) {
+      
+    case HTTP_CONTENT::GET:
+      curl_get(_task_def.dest(),&resp);
+      break;
+    case HTTP_CONTENT::HEAD:
+      curl_head(_task_def.dest(),&resp);
+      break;
+    case HTTP_CONTENT::POST:
+      curl_post(_task_def.dest(),&resp);
+      break;
+    default:
+      return ret;
+  }
 
   ret = _send_result(resp.dump());
 
@@ -66,7 +79,7 @@ bool HttpTask::_do_run() {
 
 //TODO parser http is valid
 bool HttpTask::varify_task_content() const {
-  return true;
+  return _content.method() != HTTP_CONTENT::UNKNOWN;
 }
 
 bool HttpTask::_send_result(const std::string &result) {

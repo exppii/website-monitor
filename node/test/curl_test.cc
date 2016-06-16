@@ -22,7 +22,7 @@ void fetch_url_test() {
       cout << "current url: " << website << endl;
       CurlResponse resp;
 
-      curl_get(website, &resp);
+      curl_head(website, &resp);
       cout << resp.dump() << endl;
 
       sleep(1);

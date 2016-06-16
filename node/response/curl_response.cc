@@ -13,9 +13,9 @@ std::string node::CurlResponse::dump() const {
 
   nlohmann::json j;
 
-  j["respcde"] = _respcode;
-  j["redirect"] = _redirect;
-  j["url"] = _url;
+  j["respcode"] = _respcode;
+  j["curl_code"] = _curl_code;
+  j["data"] = _data;
 
   j["total_time"] = _total_time;
   j["namelookup_time"] = _namelookup_time;
