@@ -35,7 +35,6 @@ protected:
 
 private:
 
-  bool _send_result(const std::string& result);
 
   TaskDef _task_def;
 
@@ -70,11 +69,11 @@ bool HttpTask::_do_run() {
     default:
       return ret;
   }
-
-  ret = _send_result(resp.dump());
-
   printf("run http task, match content: %s", _content.match_content().c_str());
-  return ret;
+
+  //if _dataproc
+  return _dataproc->add_data(resp.to_json());
+
 }
 
 //TODO parser http is valid
@@ -82,12 +81,6 @@ bool HttpTask::varify_task_content() const {
   return _content.method() != HTTP_CONTENT::UNKNOWN;
 }
 
-bool HttpTask::_send_result(const std::string &result) {
-
-  printf("send data: %s", result.c_str());
-  return _dataproc->add_data(result);
-
-}
 
 
 bool HttpTask::reach_time(const std::time_t & now) const {

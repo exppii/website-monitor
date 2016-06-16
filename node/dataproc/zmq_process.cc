@@ -19,14 +19,14 @@ public:
 
   }
 
-  bool proc(std::string* ) override ;
+  bool proc(nlohmann::json* ) override ;
 
 };
 
 //TODO
-bool ZMQProc::proc(std::string* data) {
+bool ZMQProc::proc(nlohmann::json* data) {
 
-  printf ("zmq will handle the data: %s",data->c_str());
+  printf ("zmq will handle the data: %s",data->dump().c_str());
   return true;
 }
 

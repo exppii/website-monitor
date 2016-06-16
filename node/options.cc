@@ -19,6 +19,8 @@ using std::make_unique;
 
 namespace webmonitor {
 
+namespace node {
+
 class LocalConfig {
 public:
   explicit LocalConfig(const std::string &config_path) {
@@ -96,8 +98,9 @@ std::string Options::get_node_name() const {
   return _config->data["node_name"].get<std::string>();
 }
 
+} //namespace node
 
-}
+} //namespace webmonitor
 
 
 

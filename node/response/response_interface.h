@@ -5,7 +5,7 @@
 #ifndef WEBSITEMONITOR_NODE_RESPONSE_INTERFACE_H_
 #define WEBSITEMONITOR_NODE_RESPONSE_INTERFACE_H_
 
-#include <string>
+#include "common/json.hpp"
 
 namespace webmonitor {
 
@@ -17,7 +17,7 @@ public:
 
   virtual ~Response(){}
 
-  virtual std::string dump() const = 0;
+  virtual nlohmann::json to_json() const = 0;
 
 };
 

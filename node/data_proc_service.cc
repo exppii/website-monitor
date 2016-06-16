@@ -39,7 +39,7 @@ public:
       _logger->debug("finined init data process service.");
   }
 
-  bool add_data(const std::string& data) override;
+  bool add_data(const nlohmann::json& data) override;
 
   void start() override ;
 
@@ -56,13 +56,13 @@ private:
   bool _running{true};
 
   unique_ptr<thread> _thread{nullptr};
-  SafeQueue<string> _queue;
+  SafeQueue<nlohmann::json> _queue;
 
   std::vector<DataProcInterfacePtr> _proc_list;
 
 };
 
-bool NodeDataProcService::add_data(const std::string & data) {
+bool NodeDataProcService::add_data(const nlohmann::json& data) {
   _logger->debug("push one data to queue...");
   _queue.push(data);
   return true;
@@ -75,6 +75,7 @@ void NodeDataProcService::start() {
 }
 
 void NodeDataProcService::stop() {
+  _running = false;
   if(_thread && _thread->joinable()) {
     _thread->join();
   }
@@ -84,7 +85,7 @@ void NodeDataProcService::stop() {
 void NodeDataProcService::_work_thread() {
   _logger->debug("data proc thread started.");
   while (_running) {
-    std::string data{};
+    nlohmann::json data{};
     if(_queue.wait_and_pop(data,3)) {
       for (const auto& proc : _proc_list) proc->proc(&data);
     } else {

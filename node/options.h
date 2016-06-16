@@ -9,6 +9,8 @@
 
 namespace webmonitor {
 
+namespace node {
+
 class LocalConfig;
 
 class Options {
@@ -32,6 +34,8 @@ public:
 private:
   std::unique_ptr<LocalConfig> _config;
 };
+
+} //namespace node
 
 } //namespace webmonitor
 

@@ -3,13 +3,13 @@
 //
 
 #include "node/response/curl_response.h"
-#include "common/json.hpp"
+
 
 namespace webmonitor {
 
 namespace node {
 
-std::string node::CurlResponse::dump() const {
+nlohmann::json node::CurlResponse::to_json() const {
 
   nlohmann::json j;
 
@@ -23,7 +23,7 @@ std::string node::CurlResponse::dump() const {
   j["appconnect_time"] = _appconnect_time;
   j["pretransfer_time"] = _pretransfer_time;
   j["starttransfer_time"] = _starttransfer_time;
-  return j.dump();
+  return j;
 }
 
 }

@@ -5,7 +5,7 @@
 #ifndef WEBSITEMONITOR_NODE_CURLRESPONSE_H_
 #define WEBSITEMONITOR_NODE_CURLRESPONSE_H_
 
-#include <math.h>
+
 #include "node/response/response_interface.h"
 
 namespace webmonitor {
@@ -17,7 +17,7 @@ class CurlResponse : public Response {
 public:
   CurlResponse(){}
 
-  std::string dump() const override;
+  nlohmann::json to_json() const override;
 
 public:
 

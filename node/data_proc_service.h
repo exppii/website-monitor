@@ -5,7 +5,7 @@
 #ifndef WEBSITEMONITOR_NODE_DATA_PROC_SERVICE_H
 #define WEBSITEMONITOR_NODE_DATA_PROC_SERVICE_H
 
-#include <string>
+#include "common/json.hpp"
 #include "common/service_interface.h"
 
 namespace webmonitor {
@@ -18,7 +18,7 @@ class DataProcServiceInterface : public ServiceInterface {
 public:
   virtual ~DataProcServiceInterface(){}
 
-  virtual bool add_data(const std::string&) = 0;
+  virtual bool add_data(const nlohmann::json& ) = 0;
 
 };
 

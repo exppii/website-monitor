@@ -27,7 +27,6 @@
 }
 
 ```
-
 * PING监控任务
 
 ```json
@@ -47,11 +46,28 @@
 
 ### 由采集器节点获取数据
 
+* HTTP/HTTPS监控任务
+
 ```json
-
-
+{
+  "node_id" : 1000,
+  "job_id" : 1000,
+  "create_time" : 1462279637,
+  "event_count" : 1,
+  "event_type" : "HTTP_HEAD_NOT_CARE",
+  "curl_code" : 0,
+  "respcode":302,
+  "appconnect_time":0.0,
+  "connect_time":0.048436,
+  "namelookup_time":0.0001,
+  "pretransfer_time":0.04867,
+  "starttransfer_time":0.084924,
+  "total_time":0.084939,
+  "method" : 1,
+  "data" : "real html data",
+  "matched" : true
+}
 ```
-
 
 curl time
 

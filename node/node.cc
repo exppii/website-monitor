@@ -13,7 +13,7 @@ using namespace webmonitor;
 
 int main(int argc, char const *argv[]) {
 
-  Options opt("../conf/node_service.config");
+  node::Options opt("../conf/node_service.config");
 
   //create logs dir to save log files.
   mkdir_if_not_exists("../logs");
