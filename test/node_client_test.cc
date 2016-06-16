@@ -2,12 +2,13 @@
 // Created by 刘优 on 16/6/13.
 //
 
-#include "common/utils.h"
-//#include "node/options.h"
-#include "gtest/gtest.h"
+#include "test/node_client_task_test.h"
 
 
-TEST(file_existsTest, HandleTrueReturn) {
-  EXPECT_TRUE(file_exists("../conf/node_service.config"));
-  EXPECT_TRUE(file_exists("../conf/node_log.config"));
+
+int main(int argc, char *argv[]) {
+
+  // testing::AddGlobalTestEnvironment(new LocalCacheEnvironment);
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
