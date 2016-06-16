@@ -19,20 +19,20 @@ namespace webmonitor {
 namespace node {
 
 std::shared_ptr<TaskInterface>
-TaskFactory::create(const TaskDef *task, DataProcServiceInterface *dataproc) {
+TaskFactory::create(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc) {
   std::shared_ptr<TaskInterface> interface = nullptr;
 
   switch (task->type()) {
     case TaskDef::HTTP: {
-      interface = HttpTaskSharedPtr(task, dataproc);
+      interface.reset(NewHttpTaskPtr(task, dataproc));
       break;
     }
     case TaskDef::PING: {
-      interface = PingTaskSharedPtr(task, dataproc);
+      interface.reset(NewPingTaskPtr(task, dataproc));
       break;
     }
     case TaskDef::DNS: {
-      interface = PingTaskSharedPtr(task, dataproc);
+      interface.reset(NewDNSTaskPtr(task, dataproc));
       break;
     }
     case TaskDef::UNKNOWN:

@@ -20,7 +20,7 @@ class Master {
 
 public:
   Master(Options * options)
-      :_cache_util(LevelDBCachedUtilUniquePtr(options)) {}
+      :_cache_util(NewLevelDBCachedUtilPtr(options)) {}
 // Convenient typedef for a closure passing a Status.
   typedef std::function<void(const ::grpc::Status&)> closure;
 

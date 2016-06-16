@@ -23,7 +23,7 @@ class LocalCacheTest : public ::testing::Test {
 protected:
   static void SetUpTestCase() {
     opt.reset(new taskserver::Options("../conf/taskserver.config"));
-    cache = webmonitor::taskserver::LevelDBCachedUtilUniquePtr(opt.get());
+    cache.reset(webmonitor::taskserver::NewLevelDBCachedUtilPtr(opt.get()));
     _init_job_list();
   }
 

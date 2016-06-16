@@ -31,11 +31,9 @@ class NodeServer : public NodeServerInterface {
 public:
 
   NodeServer(const Options *options)
-      : _data_proc(DataProcServiceUniquePtr(options)),
-        _task_manager(TaskManagerUniquePtr()),
-        _grpc_service(
-            GrpcServiceUniquePtr(options, _data_proc.get(), _task_manager.get()
-            )) {
+      : _data_proc(NewDataProcServicePtr(options)),
+        _task_manager(NewTaskManagerPtr()),
+        _grpc_service(NewGrpcServicePtr(options, _data_proc, _task_manager)) {
     _logger->info("NodeServer is init finined.");
   }
 
@@ -51,8 +49,8 @@ private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
-  std::unique_ptr<DataProcServiceInterface> _data_proc;
-  std::unique_ptr<TaskManagerInterface> _task_manager;
+  std::shared_ptr<DataProcServiceInterface> _data_proc;
+  std::shared_ptr<TaskManagerInterface> _task_manager;
   std::unique_ptr<ServiceInterface> _grpc_service;
 
 };
@@ -80,10 +78,8 @@ int NodeServer::wait_shutdown() {
   return 1;
 }
 
-
-std::unique_ptr<NodeServerInterface> NodeServerUniquePtr(
-    const Options *options) {
-  return make_unique<NodeServer>(options);
+NodeServerInterface* NewNodeServerPtr(const Options *options) {
+  return new NodeServer(options);
 }
 
 } //namspace node

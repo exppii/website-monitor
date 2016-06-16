@@ -17,12 +17,12 @@ using std::string;
 namespace webmonitor {
 
 namespace node {
-class DNSTask :public TaskInterface {
+class DNSTask : public TaskInterface {
 public:
 
-  explicit DNSTask(const TaskDef *, DataProcServiceInterface *dataproc);
+  explicit DNSTask(const TaskDef *, std::shared_ptr<DataProcServiceInterface> dataproc);
 
-  bool reach_time(const std::time_t&) const override;
+  bool reach_time(const std::time_t &) const override;
 
   bool varify_task_content() const override;
 
@@ -36,13 +36,13 @@ private:
 
   DNS_CONTENT _content;
 
-  DataProcServiceInterface *_dataproc;
+  std::shared_ptr<DataProcServiceInterface> _dataproc;
 
 };
 
-DNSTask::DNSTask(const TaskDef *task, DataProcServiceInterface *dataproc)
+DNSTask::DNSTask(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc)
     : _task_def(*task), _dataproc(dataproc) {
-  if(task->content().Is<DNS_CONTENT>()) task->content().UnpackTo(&_content);
+  if (task->content().Is<DNS_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 //TODO
@@ -58,16 +58,16 @@ bool DNSTask::varify_task_content() const {
 }
 
 
-bool DNSTask::reach_time(const std::time_t & now) const {
-  if(_is_running() || _task_def.status() == TaskDef::STOP) return false;
+bool DNSTask::reach_time(const std::time_t &now) const {
+  if (_is_running() || _task_def.status() == TaskDef::STOP) return false;
   auto dif = std::difftime(now, _last_run_time);
   return dif > _task_def.frequency();
 }
 
 
-std::shared_ptr<TaskInterface>
-DNSTaskSharedPtr(const TaskDef *task, DataProcServiceInterface *dataproc) {
-  return std::make_shared<DNSTask>(task, dataproc);
+TaskInterface *NewDNSTaskPtr(const TaskDef *task,
+                             std::shared_ptr<DataProcServiceInterface> dataproc) {
+  return new DNSTask(task, dataproc);
 }
 
 } //namespace node

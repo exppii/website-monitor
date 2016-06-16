@@ -5,13 +5,9 @@
 
 #include <grpc++/grpc++.h>
 
+#include "node/node_interface.h"
 #include "protos/master_service.grpc.pb.h"
 
-#if __cplusplus < 201402L
-#include "common/utils.h" //using custom make_uniue
-#else
-using std::make_unique;
-#endif
 
 using ::grpc::Channel;
 
@@ -55,9 +51,8 @@ private:
   std::unique_ptr<MasterService::Stub> _stub;
 };
 
-std::unique_ptr<NodeInterface> GrpcNodePtr(std::shared_ptr<::grpc::Channel>
-                                           channel) {
-  return make_unique<GrpcNode>(channel);
+NodeInterface* NewGrpcNodePtr(std::shared_ptr<::grpc::Channel> channel) {
+  return new GrpcNode(channel);
 }
 
 }

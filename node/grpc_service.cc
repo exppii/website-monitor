@@ -14,10 +14,11 @@
 #include "node/task/task_factory.h"
 #include "node/logger.h"
 #include "node/taskmanager_service.h"
-
 #include "node/data_proc_service.h"
-
 #include "node/options.h"
+#include "node/node_interface.h"
+
+#include "protos/master_service.pb.h"
 
 
 #if __cplusplus < 201402L
@@ -61,8 +62,8 @@ public:
   using ServiceInterface::ServiceInterface;
 
   explicit GrpcService(const Options *options,
-                       DataProcServiceInterface *dataproc,
-                       TaskManagerInterface *manager);
+                       std::shared_ptr<DataProcServiceInterface> dataproc,
+                       std::shared_ptr<TaskManagerInterface> manager);
 
   void start() override;
 
@@ -87,8 +88,8 @@ private:
   vector<thread> _threads{};
 
   Info _info;
-  DataProcServiceInterface *_data_proc;
-  TaskManagerInterface *_task_manager;
+  std::shared_ptr<DataProcServiceInterface> _data_proc;
+  std::shared_ptr<TaskManagerInterface> _task_manager;
 
   shared_ptr<::grpc::Channel> _channel{nullptr};
 
@@ -97,8 +98,8 @@ private:
 };
 
 GrpcService::GrpcService(const Options *options,
-                         DataProcServiceInterface *dataproc,
-                         TaskManagerInterface *manager)
+                          std::shared_ptr<DataProcServiceInterface> dataproc,
+                          std::shared_ptr<TaskManagerInterface> manager)
     : _info(options), _data_proc(dataproc), _task_manager(manager) {
   _logger->info("Init grpc service...");
   const auto url = options->get_taskserver_addr() + ":" +
@@ -107,7 +108,7 @@ GrpcService::GrpcService(const Options *options,
   _logger->info("Create insecure grpc channel to task server: {}. ", url);
   _channel = grpc::CreateChannel(url, grpc::InsecureChannelCredentials());
 
-  _grpc_node = GrpcNodePtr(_channel);
+  _grpc_node.reset(NewGrpcNodePtr(_channel));
 
 }
 
@@ -158,9 +159,11 @@ void GrpcService::_fetchjob_thread() {
       continue;
     }
 
-    std::vector<uint64_t> droplist(resp.dropped_list().cbegin(),resp.dropped_list().cend());
+    std::vector<uint64_t> droplist(resp.dropped_list().cbegin(),
+                                   resp.dropped_list().cend());
     if (droplist.size() > 0) {
-      _logger->info("get drop list from server. now push the list to taskmanager.");
+      _logger->info(
+          "get drop list from server. now push the list to taskmanager.");
       _task_manager->del_task(droplist);
     }
 
@@ -171,7 +174,6 @@ void GrpcService::_fetchjob_thread() {
                     task_maps.size());
       _task_manager->add_task(task_maps);
     }
-
 
 
   }
@@ -194,11 +196,10 @@ size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
 }
 
 
-std::unique_ptr<ServiceInterface>
-GrpcServiceUniquePtr(const Options *options,
-                     DataProcServiceInterface *dataproc,
-                     TaskManagerInterface *manager) {
-  return make_unique<GrpcService>(options, dataproc, manager);
+ServiceInterface *NewGrpcServicePtr(const Options *options,
+                                    std::shared_ptr<DataProcServiceInterface> dataproc,
+                                    std::shared_ptr<TaskManagerInterface> manager) {
+  return new GrpcService(options, dataproc, manager);
 }
 
 } //namspace node

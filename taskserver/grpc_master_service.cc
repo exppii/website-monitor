@@ -177,9 +177,9 @@ private:
 
 };
 
-std::unique_ptr<AsyncServiceInterface> GrpcMasterServicePtr(::grpc::ServerBuilder
+AsyncServiceInterface* NewGrpcMasterServicePtr(::grpc::ServerBuilder
                                                             * builder, Options* options){
-  return make_unique<GrpcMasterService>(builder, options);
+  return new GrpcMasterService(builder, options);
 }
 
 

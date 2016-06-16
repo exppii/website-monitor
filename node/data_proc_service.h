@@ -22,7 +22,7 @@ public:
 
 };
 
-std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr(const Options*);
+DataProcServiceInterface* NewDataProcServicePtr(const Options*);
 
 } //namespace node
 } //namespace webmonitor

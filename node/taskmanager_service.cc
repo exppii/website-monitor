@@ -236,9 +236,8 @@ size_t NodeTaskManager::running_count() {
   return _regular_task->size();
 }
 
-
-std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr() {
-  return make_unique<NodeTaskManager>();
+TaskManagerInterface* NewTaskManagerPtr() {
+  return new NodeTaskManager();
 }
 
 } //namespace node

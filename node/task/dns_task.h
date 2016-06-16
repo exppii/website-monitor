@@ -17,8 +17,7 @@ class TaskInterface;
 
 class DataProcServiceInterface;
 
-std::shared_ptr<TaskInterface> DNSTaskSharedPtr(const TaskDef *,
-                                                DataProcServiceInterface *);
+TaskInterface* NewDNSTaskPtr(const TaskDef *, std::shared_ptr<DataProcServiceInterface>);
 
 } //namespace node
 

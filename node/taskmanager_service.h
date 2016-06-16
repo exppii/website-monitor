@@ -37,7 +37,7 @@ public:
 
 };
 
-std::unique_ptr<TaskManagerInterface> TaskManagerUniquePtr();
+TaskManagerInterface* NewTaskManagerPtr();
 
 } //namespace node
 

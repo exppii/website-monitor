@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <memory>
 #include "node/node_server.h"
 #include "node/options.h"
 #include "common/utils.h"
@@ -28,7 +29,7 @@ int main(int argc, char const *argv[]) {
 
   logger->info("current version: 0.1.0");
 
-  auto server = node::NodeServerUniquePtr(&opt);
+  std::unique_ptr<node::NodeServerInterface> server{node::NewNodeServerPtr(&opt)};
 
   try {
     server->start();

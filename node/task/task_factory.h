@@ -20,7 +20,7 @@ class TaskFactory {
 public:
   TaskFactory(){}
 
-  std::shared_ptr<TaskInterface> create(const TaskDef*, DataProcServiceInterface *);
+  std::shared_ptr<TaskInterface> create(const TaskDef*, std::shared_ptr<DataProcServiceInterface>);
 
 };
 }

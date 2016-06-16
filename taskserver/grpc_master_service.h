@@ -19,8 +19,7 @@ namespace taskserver {
 
 class Options;
 
-std::unique_ptr <AsyncServiceInterface> GrpcMasterServicePtr(
-    ::grpc::ServerBuilder *builder, Options*);
+AsyncServiceInterface* NewGrpcMasterServicePtr(::grpc::ServerBuilder *builder, Options*);
 
 } //namespace taskserver
 

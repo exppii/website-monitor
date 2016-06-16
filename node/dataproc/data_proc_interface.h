@@ -23,8 +23,6 @@ public:
 
 };
 
-using DataProcInterfacePtr = std::unique_ptr<DataProcInterface>;
-
 } //namespace node
 } //namespace webmonitor
 

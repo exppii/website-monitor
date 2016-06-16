@@ -13,7 +13,7 @@ namespace taskserver {
 
 class Options;
 
-std::unique_ptr <LocalCachedUtilInterface> LevelDBCachedUtilUniquePtr(Options *);
+LocalCachedUtilInterface* NewLevelDBCachedUtilPtr(Options *);
 
 
 } //namespace taskserver

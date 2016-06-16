@@ -3,11 +3,7 @@
 //
 
 #include "node/dataproc/zmq_process.h"
-#if __cplusplus < 201402L
-#include "common/utils.h" //using custom make_uniue
-#else
-using std::make_unique;
-#endif
+
 
 namespace webmonitor {
 
@@ -30,8 +26,8 @@ bool ZMQProc::proc(nlohmann::json* data) {
   return true;
 }
 
-DataProcInterfacePtr ZMQProcUniuePtr(const std::string& url, const uint32_t port){
-  return make_unique<ZMQProc>(url, port);
+DataProcInterface* NewZMQProcPtr(const std::string& url, const uint32_t port){
+  return new ZMQProc(url, port);
 }
 
 } //namespace node

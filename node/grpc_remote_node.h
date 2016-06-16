@@ -5,7 +5,6 @@
 #define WEBSITEMONITOR_NODE_GRPC_REMOTE_NODE_H_
 
 #include <memory>
-#include "node/node_interface.h"
 
 namespace grpc {
   class Channel;
@@ -15,8 +14,9 @@ namespace webmonitor {
 
 namespace node {
 
-std::unique_ptr <NodeInterface> GrpcNodePtr(
-    std::shared_ptr<::grpc::Channel> channel);
+class NodeInterface;
+
+NodeInterface* NewGrpcNodePtr(std::shared_ptr<::grpc::Channel> channel);
 
 }
 

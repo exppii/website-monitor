@@ -29,7 +29,7 @@ protected:
     auto outlog = spdlog::stdout_logger_mt(node::NODE_TAG);
     outlog->set_level(spdlog::level::debug);
 
-    data_proc = node::DataProcServiceUniquePtr(opt.get());
+    data_proc.reset(node::NewDataProcServicePtr(opt.get()));
     data_proc->start();
     _init_task_list();
   }
@@ -62,13 +62,13 @@ protected:
 
       ;
 
-      task_list.push_back(factory.create(&task,data_proc.get()));
+      task_list.push_back(factory.create(&task,data_proc));
     }
   }
 
 
   static std::unique_ptr<node::Options> opt;
-  static std::unique_ptr<node::DataProcServiceInterface> data_proc;
+  static std::shared_ptr<node::DataProcServiceInterface> data_proc;
   static std::vector<std::shared_ptr<node::TaskInterface> > task_list;
 
 };

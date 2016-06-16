@@ -17,8 +17,7 @@ class TaskInterface;
 
 class DataProcServiceInterface;
 
-std::shared_ptr<TaskInterface> PingTaskSharedPtr(const TaskDef *,
-                                                 DataProcServiceInterface *);
+TaskInterface* NewPingTaskPtr(const TaskDef *, std::shared_ptr<DataProcServiceInterface>);
 
 } //namespace node
 

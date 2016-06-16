@@ -17,8 +17,7 @@ class TaskInterface;
 
 class DataProcServiceInterface;
 
-std::shared_ptr<TaskInterface> HttpTaskSharedPtr(const TaskDef *,
-                                                 DataProcServiceInterface *);
+TaskInterface* NewHttpTaskPtr(const TaskDef *, std::shared_ptr<DataProcServiceInterface>);
 
 } //namespace node
 

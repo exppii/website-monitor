@@ -15,8 +15,12 @@ namespace node {
 class TaskInterface {
 
 public:
+  TaskInterface(){}
+  TaskInterface(const TaskInterface&) = delete;
+  TaskInterface& operator=(const TaskInterface&) = delete;
 
   virtual ~TaskInterface() { }
+
 
   virtual bool reach_time(const std::time_t&) const = 0;
 

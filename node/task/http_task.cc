@@ -20,12 +20,12 @@ using std::string;
 namespace webmonitor {
 
 namespace node {
-class HttpTask :public TaskInterface {
+class HttpTask : public TaskInterface {
 public:
 
-  explicit HttpTask(const TaskDef *, DataProcServiceInterface *dataproc);
+  explicit HttpTask(const TaskDef *, std::shared_ptr<DataProcServiceInterface> dataproc);
 
-  bool reach_time(const std::time_t&) const override;
+  bool reach_time(const std::time_t &) const override;
 
   bool varify_task_content() const override;
 
@@ -40,13 +40,13 @@ private:
 
   HTTP_CONTENT _content;
 
-  DataProcServiceInterface *_dataproc;
+  std::shared_ptr<DataProcServiceInterface> _dataproc;
 
 };
 
-HttpTask::HttpTask(const TaskDef *task, DataProcServiceInterface *dataproc)
+HttpTask::HttpTask(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc)
     : _task_def(*task), _dataproc(dataproc) {
-  if(task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
+  if (task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 //TODO
@@ -54,17 +54,17 @@ bool HttpTask::_do_run() {
 
   auto ret = false;
   node::CurlResponse resp;
-  
+
   switch (_content.method()) {
-      
+
     case HTTP_CONTENT::GET:
-      curl_get(_task_def.dest(),&resp);
+      curl_get(_task_def.dest(), &resp);
       break;
     case HTTP_CONTENT::HEAD:
-      curl_head(_task_def.dest(),&resp);
+      curl_head(_task_def.dest(), &resp);
       break;
     case HTTP_CONTENT::POST:
-      curl_post(_task_def.dest(),&resp);
+      curl_post(_task_def.dest(), &resp);
       break;
     default:
       return ret;
@@ -82,17 +82,16 @@ bool HttpTask::varify_task_content() const {
 }
 
 
-
-bool HttpTask::reach_time(const std::time_t & now) const {
-  if(_is_running() || _task_def.status() == TaskDef::STOP) return false;
+bool HttpTask::reach_time(const std::time_t &now) const {
+  if (_is_running() || _task_def.status() == TaskDef::STOP) return false;
   auto dif = std::difftime(now, _last_run_time);
   return dif > _task_def.frequency();
 }
 
 
-std::shared_ptr<TaskInterface>
-HttpTaskSharedPtr(const TaskDef *task, DataProcServiceInterface *dataproc) {
-  return std::make_shared<HttpTask>(task, dataproc);
+TaskInterface *NewHttpTaskPtr(const TaskDef *task,
+                              std::shared_ptr<DataProcServiceInterface> dataproc) {
+  return new HttpTask(task, dataproc);
 }
 
 } //namespace node

@@ -13,11 +13,6 @@
 #include "node/options.h"
 #include "common/type_safe_queue.h"
 
-#if __cplusplus < 201402L
-#include "common/utils.h" //using custom make_uniue
-#else
-using std::make_unique;
-#endif
 
 using std::thread;
 using std::string;
@@ -31,11 +26,15 @@ namespace node {
 class NodeDataProcService : public DataProcServiceInterface {
 public:
 
+  using DataProcInterfacePtr = std::unique_ptr<DataProcInterface>;
+
   explicit NodeDataProcService(const Options* option) {
       _logger->info("Init data process service...");
       //_proc_list.push_back(CompressProcUniuePtr());
       _logger->info("push ZMQ proc handle to proc list.");
-      _proc_list.push_back(ZMQProcUniuePtr(option->get_upload_addr(),option->get_upload_port()));
+      DataProcInterfacePtr zmq(NewZMQProcPtr(option->get_upload_addr(),option->get_upload_port()));
+      _proc_list.push_back(std::move(zmq));
+
       _logger->debug("finined init data process service.");
   }
 
@@ -95,8 +94,8 @@ void NodeDataProcService::_work_thread() {
 }
 
 
-std::unique_ptr<DataProcServiceInterface> DataProcServiceUniquePtr(const Options* options) {
-  return make_unique<NodeDataProcService>(options);
+DataProcServiceInterface* NewDataProcServicePtr(const Options* options) {
+  return new NodeDataProcService(options);
 }
 } //namespace node
 

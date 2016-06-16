@@ -19,7 +19,7 @@ namespace node {
 class PingTask : public TaskInterface {
 public:
 
-  explicit PingTask(const TaskDef *, DataProcServiceInterface *dataproc);
+  explicit PingTask(const TaskDef *, std::shared_ptr<DataProcServiceInterface> dataproc);
 
   bool reach_time(const std::time_t&) const override;
 
@@ -36,11 +36,11 @@ private:
 
   PING_CONTENT _content;
 
-  DataProcServiceInterface *_dataproc;
+  std::shared_ptr<DataProcServiceInterface> _dataproc;
 
 };
 
-PingTask::PingTask(const TaskDef *task, DataProcServiceInterface *dataproc)
+PingTask::PingTask(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc)
     : _task_def(*task), _dataproc(dataproc) {
   if (task->content().Is<PING_CONTENT>()) task->content().UnpackTo(&_content);
 }
@@ -65,9 +65,8 @@ bool PingTask::reach_time(const std::time_t &now) const {
 }
 
 
-std::shared_ptr<TaskInterface>
-PingTaskSharedPtr(const TaskDef *task, DataProcServiceInterface *dataproc) {
-  return std::make_shared<PingTask>(task, dataproc);
+TaskInterface* NewPingTaskPtr(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc) {
+  return new PingTask(task, dataproc);
 }
 
 } //namespace node

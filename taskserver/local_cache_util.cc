@@ -323,10 +323,9 @@ void LocalCachedUtil::print_all() {
 #endif
 
 
-std::unique_ptr<LocalCachedUtilInterface> LevelDBCachedUtilUniquePtr(
-    Options *option) {
+LocalCachedUtilInterface* NewLevelDBCachedUtilPtr(Options *option) {
 
-  return make_unique<LocalCachedUtil>(option);
+  return new LocalCachedUtil(option);
 
 }
 
