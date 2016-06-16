@@ -24,6 +24,12 @@ void init_job_list(std::vector<JobDef> &job_list) {
     task->set_type(webmonitor::TaskDef::HTTP);
     task->set_status(webmonitor::TaskDef::RUN);
 
+    HTTP_CONTENT content;
+    content.set_method(HTTP_CONTENT::GET);
+    content.set_match_cmd(HTTP_CONTENT::NOT_CARE);
+
+    task->mutable_content()->PackFrom(content);
+
     job.add_node_list(1000);
     job.add_node_list(20);
     job.add_node_list(30);
@@ -31,6 +37,9 @@ void init_job_list(std::vector<JobDef> &job_list) {
       job.add_node_list(40);
       task->set_status(webmonitor::TaskDef::STOP);
     }
+
+
+
     job_list.push_back(job);
   }
 }
