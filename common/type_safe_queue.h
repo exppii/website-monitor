@@ -56,20 +56,6 @@ public:
   }
 
 
-  bool try_pop(T& item) {
-
-    std::unique_lock<std::mutex> mlock(_mtx);
-
-    if(_queue.empty()) {
-      return false;
-    }
-
-    item = _queue.front();
-    _queue.pop();
-    return true;
-
-  }
-
   void push(const T& item)
   {
     {
