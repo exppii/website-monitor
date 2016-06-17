@@ -8,7 +8,7 @@
 
 #include <sys/stat.h>  // for mkdir
 #include <dirent.h> //for DIR
-
+#include <unistd.h>
 
 bool file_exists(const std::string &path) {
   return (access(path.c_str(), F_OK) != -1);
