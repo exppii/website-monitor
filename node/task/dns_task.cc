@@ -20,7 +20,7 @@ namespace node {
 class DNSTask : public TaskInterface {
 public:
 
-  explicit DNSTask(const TaskDef *, std::shared_ptr<DataProcServiceInterface> dataproc);
+  explicit DNSTask(const TaskDef *);
 
   bool reach_time(const std::time_t &) const override;
 
@@ -28,7 +28,7 @@ public:
 
 protected:
 
-  bool _do_run() override;
+  bool _do_run(Closure done) override;
 
 private:
 
@@ -36,20 +36,16 @@ private:
 
   DNS_CONTENT _content;
 
-  std::shared_ptr<DataProcServiceInterface> _dataproc;
-
 };
 
-DNSTask::DNSTask(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc)
-    : _task_def(*task), _dataproc(dataproc) {
+DNSTask::DNSTask(const TaskDef *task) : _task_def(*task) {
   if (task->content().Is<DNS_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 //TODO
-bool DNSTask::_do_run() {
-  const std::string data = "run dns task.";
-  _dataproc->add_data(data);
-  return false;
+bool DNSTask::_do_run(Closure done) {
+  const nlohmann::json n{};
+  return done(n);
 }
 
 //TODO
@@ -65,9 +61,8 @@ bool DNSTask::reach_time(const std::time_t &now) const {
 }
 
 
-TaskInterface *NewDNSTaskPtr(const TaskDef *task,
-                             std::shared_ptr<DataProcServiceInterface> dataproc) {
-  return new DNSTask(task, dataproc);
+TaskInterface *NewDNSTaskPtr(const TaskDef *task) {
+  return new DNSTask(task);
 }
 
 } //namespace node

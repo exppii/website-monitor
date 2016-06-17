@@ -23,7 +23,7 @@ namespace node {
 class HttpTask : public TaskInterface {
 public:
 
-  explicit HttpTask(const TaskDef *, std::shared_ptr<DataProcServiceInterface> dataproc);
+  explicit HttpTask(const TaskDef *);
 
   bool reach_time(const std::time_t &) const override;
 
@@ -31,7 +31,7 @@ public:
 
 protected:
 
-  bool _do_run() override;
+  bool _do_run(Closure done) override;
 
 private:
 
@@ -40,17 +40,14 @@ private:
 
   HTTP_CONTENT _content;
 
-  std::shared_ptr<DataProcServiceInterface> _dataproc;
-
 };
 
-HttpTask::HttpTask(const TaskDef *task, std::shared_ptr<DataProcServiceInterface> dataproc)
-    : _task_def(*task), _dataproc(dataproc) {
+HttpTask::HttpTask(const TaskDef *task) : _task_def(*task) {
   if (task->content().Is<HTTP_CONTENT>()) task->content().UnpackTo(&_content);
 }
 
 //TODO
-bool HttpTask::_do_run() {
+bool HttpTask::_do_run(Closure done) {
 
   auto ret = false;
   node::CurlResponse resp;
@@ -72,7 +69,7 @@ bool HttpTask::_do_run() {
   printf("run http task, match content: %s", _content.match_content().c_str());
 
   //if _dataproc
-  return _dataproc->add_data(resp.to_json());
+  return done(resp.to_json());
 
 }
 
@@ -89,9 +86,8 @@ bool HttpTask::reach_time(const std::time_t &now) const {
 }
 
 
-TaskInterface *NewHttpTaskPtr(const TaskDef *task,
-                              std::shared_ptr<DataProcServiceInterface> dataproc) {
-  return new HttpTask(task, dataproc);
+TaskInterface *NewHttpTaskPtr(const TaskDef *task) {
+  return new HttpTask(task);
 }
 
 } //namespace node

@@ -20,7 +20,6 @@ class TaskManagerInterface;
 class DataProcServiceInterface;
 
 ServiceInterface *NewGrpcServicePtr(const Options *,
-                                    std::shared_ptr<DataProcServiceInterface>,
                                     std::shared_ptr<TaskManagerInterface>);
 
 } //namespace node

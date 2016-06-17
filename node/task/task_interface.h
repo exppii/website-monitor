@@ -5,6 +5,7 @@
 #ifndef WEBSITEMONITOR__NODE_TASK_INTERFACE_H_
 #define WEBSITEMONITOR__NODE_TASK_INTERFACE_H_
 
+#include "common/json.hpp"
 #include <iostream>
 #include <string>
 
@@ -15,6 +16,10 @@ namespace node {
 class TaskInterface {
 
 public:
+
+  // Convenient typedef for a closure passing a json result.
+  using Closure = std::function<bool(const nlohmann::json&)>;
+
   TaskInterface(){}
   TaskInterface(const TaskInterface&) = delete;
   TaskInterface& operator=(const TaskInterface&) = delete;
@@ -26,17 +31,17 @@ public:
 
   virtual bool varify_task_content() const = 0;
 
-  bool run() {
+  bool run(Closure done) {
     _running = true;
     _last_run_time = std::time(nullptr);
-    auto ret = _do_run();
+    auto ret = _do_run(done);
     _running = false;
     return ret;
   }
 
 protected:
 
-  virtual bool _do_run() = 0;
+  virtual bool _do_run(Closure done) = 0;
 
   bool _is_running() const { return _running;}
 

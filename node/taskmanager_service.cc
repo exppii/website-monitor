@@ -10,6 +10,7 @@
 #include <future>
 
 #include "node/logger.h"
+#include "data_proc_service.h"
 
 #if __cplusplus < 201402L
 #include "common/utils.h" //using custom make_uniue
@@ -35,7 +36,8 @@ namespace node {
 class NodeTaskManager : public TaskManagerInterface {
 public:
 
-  explicit NodeTaskManager() {
+  explicit NodeTaskManager(std::shared_ptr<DataProcServiceInterface> dataproc)
+  :_data_proc(dataproc) {
     _logger->info("Init task manager service...");
   }
 
@@ -67,6 +69,8 @@ private:
   using TaskMapUniquePtr = std::unique_ptr<std::map<uint64_t, TaskSharedPtr>>;
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
+
+  std::shared_ptr<DataProcServiceInterface> _data_proc;
 
   bool _running{true};
 
@@ -163,9 +167,13 @@ void NodeTaskManager::_run_task_thread() {
 
         for (auto &task : *_running_task) {
           if(task_result->find(task.first) == task_result->end()) {
-            (*task_result)[task.first] = std::async(std::launch::async,
-                                                    &TaskInterface::run,
-                                                    task.second.get());
+            (*task_result)[task.first] =
+                std::async(std::launch::async,
+                           &TaskInterface::run,
+                           task.second.get(),
+                           [this](const nlohmann::json& data){
+                       return this->_data_proc->add_data(data);
+                    });
           }
         }
 
@@ -230,14 +238,13 @@ void NodeTaskManager::copy_task_running_map() {
   }
 }
 
-
 size_t NodeTaskManager::running_count() {
   std::unique_lock<mutex> mlock(_regular_mtx);
   return _regular_task->size();
 }
 
-TaskManagerInterface* NewTaskManagerPtr() {
-  return new NodeTaskManager();
+TaskManagerInterface* NewTaskManagerPtr(std::shared_ptr<DataProcServiceInterface> dataproc) {
+  return new NodeTaskManager(dataproc);
 }
 
 } //namespace node

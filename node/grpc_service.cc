@@ -61,9 +61,7 @@ class GrpcService : public ServiceInterface {
 public:
   using ServiceInterface::ServiceInterface;
 
-  explicit GrpcService(const Options *options,
-                       std::shared_ptr<DataProcServiceInterface> dataproc,
-                       std::shared_ptr<TaskManagerInterface> manager);
+  explicit GrpcService(const Options *, std::shared_ptr<TaskManagerInterface>);
 
   void start() override;
 
@@ -88,7 +86,7 @@ private:
   vector<thread> _threads{};
 
   Info _info;
-  std::shared_ptr<DataProcServiceInterface> _data_proc;
+
   std::shared_ptr<TaskManagerInterface> _task_manager;
 
   shared_ptr<::grpc::Channel> _channel{nullptr};
@@ -98,9 +96,8 @@ private:
 };
 
 GrpcService::GrpcService(const Options *options,
-                          std::shared_ptr<DataProcServiceInterface> dataproc,
                           std::shared_ptr<TaskManagerInterface> manager)
-    : _info(options), _data_proc(dataproc), _task_manager(manager) {
+    : _info(options), _task_manager(manager) {
   _logger->info("Init grpc service...");
   const auto url = options->get_taskserver_addr() + ":" +
                    std::to_string(options->get_taskserver_port());
@@ -183,7 +180,7 @@ size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
                                         std::map<uint64_t, TaskSharedPtr> *task_map) {
   TaskFactory factory;
   for (const auto &raw : resp.task_map()) {
-    auto task = factory.create(&raw.second, _data_proc);
+    auto task = factory.create(&raw.second);
     if (task) {
       task_map->insert({raw.first, task});
       _logger->debug("success add task: {} to map.", raw.first);
@@ -197,9 +194,8 @@ size_t GrpcService::_parser_task_to_map(const GetJobResponse &resp,
 
 
 ServiceInterface *NewGrpcServicePtr(const Options *options,
-                                    std::shared_ptr<DataProcServiceInterface> dataproc,
                                     std::shared_ptr<TaskManagerInterface> manager) {
-  return new GrpcService(options, dataproc, manager);
+  return new GrpcService(options, manager);
 }
 
 } //namspace node

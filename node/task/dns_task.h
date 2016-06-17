@@ -5,8 +5,6 @@
 #ifndef WEBSITEMONITOR_NODE_DNS_TASK_H_
 #define WEBSITEMONITOR_NODE_DNS_TASK_H_
 
-#include <memory>
-
 namespace webmonitor {
 
 class TaskDef;
@@ -15,9 +13,7 @@ namespace node {
 
 class TaskInterface;
 
-class DataProcServiceInterface;
-
-TaskInterface* NewDNSTaskPtr(const TaskDef *, std::shared_ptr<DataProcServiceInterface>);
+TaskInterface* NewDNSTaskPtr(const TaskDef *);
 
 } //namespace node
 

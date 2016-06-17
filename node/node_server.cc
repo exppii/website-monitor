@@ -32,8 +32,8 @@ public:
 
   NodeServer(const Options *options)
       : _data_proc(NewDataProcServicePtr(options)),
-        _task_manager(NewTaskManagerPtr()),
-        _grpc_service(NewGrpcServicePtr(options, _data_proc, _task_manager)) {
+        _task_manager(NewTaskManagerPtr(_data_proc)),
+        _grpc_service(NewGrpcServicePtr(options, _task_manager)) {
     _logger->info("NodeServer is init finined.");
   }
 

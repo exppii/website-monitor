@@ -37,7 +37,7 @@ public:
 
 };
 
-TaskManagerInterface* NewTaskManagerPtr();
+TaskManagerInterface* NewTaskManagerPtr(std::shared_ptr<DataProcServiceInterface>);
 
 } //namespace node
 

@@ -45,7 +45,6 @@ protected:
     for (int i = 1; i < 11; i++) {
       TaskDef task;
 
-
       task.set_frequency(i* 5);
       task.set_dest("baidu.com");
       task.set_type(webmonitor::TaskDef::HTTP);
@@ -62,7 +61,7 @@ protected:
 
       ;
 
-      task_list.push_back(factory.create(&task,data_proc));
+      task_list.push_back(factory.create(&task));
     }
   }
 
