@@ -4,10 +4,13 @@
 
 #include <iostream>
 #include <string>
+#include <unistd.h>
+#include <fstream>
+
 #include "node/curl/curl_lib.h"
 #include "node/response/curl_response.h"
 #include "common/utils.h"
-#include <fstream>
+
 
 using namespace std;
 using namespace webmonitor::node;
@@ -23,7 +26,7 @@ void fetch_url_test() {
       CurlResponse resp;
 
       curl_head(website, &resp);
-      cout << resp.dump() << endl;
+      cout << resp.to_json() << endl;
 
       sleep(1);
     }

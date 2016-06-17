@@ -6,6 +6,7 @@
 #define WEBSITEMONITOR_TASKSERVER_COMMON_OPTIONS_H_
 
 #include <string>
+#include <memory>
 
 namespace webmonitor {
 

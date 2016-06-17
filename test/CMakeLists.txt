@@ -46,7 +46,7 @@ LIST(APPEND NODE_SOURCE_FILES "../common/utils.cc" "node_client_test.cc"
         "node_client_test.cc"
         )
 
-list(REMOVE_ITEM NODE_SOURCE_FILES "/Users/liuyou/Workspace/website-monitor/test/../node/node.cc")
+list(REMOVE_ITEM NODE_SOURCE_FILES "${CMAKE_SOURCE_DIR}/test/../node/node.cc")
 add_executable(node_client_test ${NODE_SOURCE_FILES})
 
 target_link_libraries(node_client_test ${NODE_LINK_LIBS}

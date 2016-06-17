@@ -6,6 +6,7 @@
 #define WEBSITEMONITOR_COMMON_OPTIONS_H_
 
 #include <string>
+##include <memory>
 
 namespace webmonitor {
 

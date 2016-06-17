@@ -4,7 +4,11 @@
 
 #include "common/varint.h"
 
+#include <cstring>
+
 #include "common/port_posix.h"
+
+
 
 namespace webmonitor {
 
@@ -14,11 +18,11 @@ void encode_fixint32(char* buf, uint32_t value) {
 
   if (port::kLittleEndian) {
 
-    memcpy(buf, &value,sizeof(value));
+    std::memcpy(buf, &value,sizeof(value));
   } else {
     auto s = sizeof(value);
 
-    for (int i = 0; i != s; ++i) {
+    for (size_t i = 0; i != s; ++i) {
       buf[i] = (value >> i*8)& 0xff;
     }
   }
@@ -28,11 +32,11 @@ void encode_fixint64(char* buf, uint64_t value) {
 
   if (port::kLittleEndian) {
 
-    memcpy(buf, &value,sizeof(value));
+    std::memcpy(buf, &value,sizeof(value));
   } else {
     auto s = sizeof(value);
 
-    for (int i = 0; i != s; ++i) {
+    for (size_t i = 0; i != s; ++i) {
       buf[i] = (value >> i*8)& 0xff;
     }
   }
@@ -52,7 +56,7 @@ uint32_t decode_fixed32(const char* ptr) {
 
     uint32_t result;
 
-    memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
+    std::memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
 
     return result;
 
@@ -73,7 +77,7 @@ uint64_t decode_fixed64(const char* ptr) {
 
     uint64_t result;
 
-    memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
+    std::memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
 
     return result;
 

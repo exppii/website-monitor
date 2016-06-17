@@ -6,7 +6,9 @@
 #define WEBSITEMONITOR_UTILS_H
 
 #include <string>
-
+#if __cplusplus < 201402L
+##include <memory>
+#endif
 
 bool file_exists(const std::string& path);
 
