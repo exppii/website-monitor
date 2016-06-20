@@ -1,9 +1,8 @@
 //
-// Created by 刘优 on 16/6/5.
+// Created by 刘优 on 16/6/20.
 //
 
-
-#include "node/logger.h"
+#include "common/log_uitl.h"
 
 #include <fstream>
 #include <sstream>
@@ -16,10 +15,12 @@
 #include <cassert>
 #endif
 
-bool webmonitor::node::init_logger(const std::string& path) noexcept {
+using std::string;
+
+bool webmonitor::init_logger(const string& path, const string& tag) noexcept {
 
 #ifndef NDEBUG
-assert(file_exists(path));
+  assert(file_exists(path));
 #endif
 
   auto ret = false;
@@ -33,9 +34,9 @@ assert(file_exists(path));
     auto max_index = conf["maxBackupIndex"].get<int>();
 
 #ifdef NDEBUG
-    auto file_logger = spdlog::rotating_logger_mt(id, filename, max_file_size, max_index,true);
+    auto file_logger = spdlog::rotating_logger_mt(tag, filename, max_file_size, max_index,false);
 #else
-    auto file_logger = spdlog::rotating_logger_mt(NODE_TAG, filename, max_file_size, max_index,true);
+    auto file_logger = spdlog::rotating_logger_mt(tag, filename, max_file_size, max_index,true);
 #endif
 
     spdlog::set_pattern(conf["pattern"].get<std::string>());
@@ -59,4 +60,3 @@ assert(file_exists(path));
 
   return true;
 }
-

@@ -13,10 +13,8 @@ namespace taskserver {
 
 const std::string SERVER_TAG = "taskserver";
 
-bool init_logger(const std::string& path) noexcept;
+} //namespace taskserver
 
-}
-
-}
+} //namespace webmonitor
 
 #endif //WEBSITEMONITOR_TASKSERVER_LOGGER_H_

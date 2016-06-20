@@ -13,10 +13,8 @@ namespace node {
 
 const std::string NODE_TAG = "node_log";
 
-bool init_logger(const std::string& path) noexcept;
+} //namespace node
 
-}
-
-}
+} //namespace webmonitor
 
 #endif //WEBSITEMONITOR_NODE_LOGGER_H_

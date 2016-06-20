@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
   mkdir_if_not_exists("../logs");
 
   //init log config
-  //node::init_logger(opt.get_log_config_path());
+  //node::init_logger(opt.get_log_config_path(),taskserver::SERVER_TAG);
   //test code
   auto outlog = spdlog::stdout_logger_mt(taskserver::SERVER_TAG);
   outlog->set_level(spdlog::level::debug);
