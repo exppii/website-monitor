@@ -98,9 +98,19 @@ std::string Options::get_node_name() const {
   return _config->data["node_name"].get<std::string>();
 }
 
+std::string Options::get_encrypt() const {
+return _config->data["encrypt"].get<std::string>();
+}
+
+std::string Options::get_compress() const {
+return _config->data["compress"].get<std::string>();
+}
+
+std::string Options::get_wal_path() const {
+return _config->data["wal_path"].get<std::string>();
+}
+
+
 } //namespace node
 
 } //namespace webmonitor
-
-
-

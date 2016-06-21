@@ -7,7 +7,7 @@
 #include <thread>
 
 #include "node/logger.h"
-#include "node/dataproc/zmq_process.h"
+#include "node/dataproc/process_lib.h"
 
 
 #include "node/options.h"
@@ -17,6 +17,7 @@
 using std::thread;
 using std::string;
 using std::unique_ptr;
+using std::vector;
 using std::chrono::seconds;
 
 namespace webmonitor {
@@ -26,17 +27,7 @@ namespace node {
 class NodeDataProcService : public DataProcServiceInterface {
 public:
 
-  using DataProcInterfacePtr = std::unique_ptr<DataProcInterface>;
-
-  explicit NodeDataProcService(const Options* option) {
-      _logger->info("Init data process service...");
-      //_proc_list.push_back(CompressProcUniuePtr());
-      _logger->info("push ZMQ proc handle to proc list.");
-      DataProcInterfacePtr zmq(NewZMQProcPtr(option->get_upload_addr(),option->get_upload_port()));
-      _proc_list.push_back(std::move(zmq));
-
-      _logger->debug("finined init data process service.");
-  }
+  explicit NodeDataProcService(const Options* options);
 
   bool add_data(const nlohmann::json& data) override;
 
@@ -46,7 +37,9 @@ public:
 
 private:
 
-  void _work_thread();
+  void _data_pre_proc_thread();
+
+  void _send_to_server_thread();
 
 private:
 
@@ -55,11 +48,23 @@ private:
   bool _running{true};
 
   unique_ptr<thread> _thread{nullptr};
+  vector<thread> _threads;
+
   SafeQueue<nlohmann::json> _queue;
 
-  std::vector<DataProcInterfacePtr> _proc_list;
+  std::vector<DataProcInterfacePtr> _pre_proc_list{};
+  DataProcInterfacePtr _data_sender{nullptr};
 
 };
+
+NodeDataProcService::NodeDataProcService(const Options* options) {
+
+  create_data_proc_list(options,&_pre_proc_list);
+
+  _data_sender.reset(create_data_sender(options));
+
+  _logger->debug("finined init data process service.");
+}
 
 bool NodeDataProcService::add_data(const nlohmann::json& data) {
   _logger->debug("push one data to queue...");
@@ -70,23 +75,38 @@ bool NodeDataProcService::add_data(const nlohmann::json& data) {
 void NodeDataProcService::start() {
   _logger->info("start DataProcService work thread...");
   _running = true;
-  _thread.reset(new thread(&NodeDataProcService::_work_thread,this));
+  _threads.push_back(thread(&NodeDataProcService::_data_pre_proc_thread,this));
+  _threads.push_back(thread(&NodeDataProcService::_send_to_server_thread,this));
 }
 
 void NodeDataProcService::stop() {
   _running = false;
-  if(_thread && _thread->joinable()) {
-    _thread->join();
+  for(auto& t : _threads) {
+    if(t.joinable()) t.join();
   }
+
   _logger->debug("data proc thread stopped.");
 }
 
-void NodeDataProcService::_work_thread() {
-  _logger->debug("data proc thread started.");
+void NodeDataProcService::_data_pre_proc_thread() {
+  _logger->debug("data pre proc thread started.");
   while (_running) {
     nlohmann::json data{};
     if(_queue.wait_and_pop(data,3)) {
-      for (const auto& proc : _proc_list) proc->proc(&data);
+      for (const auto& proc : _pre_proc_list) proc->proc(&data);
+    } else {
+      _logger->debug("no data in proc service...");
+    }
+  }
+}
+
+//TODO send to zmq server
+void NodeDataProcService::_send_to_server_thread() {
+  _logger->debug("data sender thread started.");
+  while (_running) {
+    nlohmann::json data{};
+    if(_queue.wait_and_pop(data,3)) {
+      for (const auto& proc : _pre_proc_list) proc->proc(&data);
     } else {
       _logger->debug("no data in proc service...");
     }

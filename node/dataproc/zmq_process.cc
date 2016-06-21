@@ -4,6 +4,7 @@
 
 #include "node/dataproc/zmq_process.h"
 
+#include "node/dataproc/data_proc_interface.h"
 
 namespace webmonitor {
 

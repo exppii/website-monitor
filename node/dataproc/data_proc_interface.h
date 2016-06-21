@@ -6,7 +6,6 @@
 #define WEBSITEMONITOR_NODE_DATAPROCINTERFACE_H_
 
 
-#include <memory>
 #include "common/json.hpp"
 
 namespace webmonitor {
