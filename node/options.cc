@@ -110,6 +110,9 @@ std::string Options::get_wal_path() const {
 return _config->data["wal_path"].get<std::string>();
 }
 
+uint32_t Options::get_batch_size() const {
+  return _config->data["batch_size"].get<uint32_t>();
+}
 
 } //namespace node
 

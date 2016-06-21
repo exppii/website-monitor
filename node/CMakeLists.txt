@@ -15,11 +15,11 @@ file(GLOB SOURCE_FILES "./*.cc"
         "./dataproc/*.cc"
         "./response/*.cc")
 
-LIST(APPEND HEDER_FILES "../common/utils.h")
+LIST(APPEND HEDER_FILES "../common/utils.h" "../common/varint.h")
 
-LIST(APPEND SOURCE_FILES "../common/utils.cc")
+LIST(APPEND SOURCE_FILES "../common/utils.cc" "../common/varint.cc")
 
-set(LINK_LIBS grpc grpc++_unsecure protobuf dl curl)
+set(LINK_LIBS grpc grpc++_unsecure protobuf dl curl leveldb)
 add_executable(nodeclient ${SOURCE_FILES} ${HEDER_FILES})
 target_link_libraries(nodeclient ${LINK_LIBS})
 

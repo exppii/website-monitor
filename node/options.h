@@ -22,7 +22,7 @@ public:
 
   std::string get_log_path() const;
   std::string get_log_config_path() const;
-  
+
   uint32_t get_report_frequency() const;
   uint32_t get_fetchtask_frequency() const;
   uint32_t get_taskserver_port() const;
@@ -34,6 +34,8 @@ public:
   std::string get_encrypt() const;
   std::string get_compress() const;
   std::string get_wal_path() const;
+
+  uint32_t get_batch_size() const;
 
   uint64_t get_node_id() const;
   std::string get_node_name() const;
