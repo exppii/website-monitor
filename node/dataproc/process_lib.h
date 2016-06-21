@@ -18,9 +18,7 @@ class Options;
 
 using DataProcInterfacePtr = std::unique_ptr<DataProcInterface>;
 
-void create_data_proc_list(const Options*, std::vector<DataProcInterfacePtr>* );
-
-DataProcInterface* create_data_sender(const Options*);
+void create_data_proc_list(const Options*, std::vector<DataProcInterfacePtr>*);
 
 } //namespace node
 

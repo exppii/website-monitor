@@ -16,13 +16,15 @@ public:
   //TODO
   EncryptProc(const std::string& method){}
 
-  bool proc(nlohmann::json* ) override;
+  bool proc(std::string* ) override;
 
+  std::string proc_name() const override { return std::string("encrypt proc");}
 };
 
 //TODO
-bool EncryptProc::proc(nlohmann::json* ) {
-  return false;
+bool EncryptProc::proc(std::string* data ) {
+  //do nothing now
+  return true;
 }
 
 DataProcInterface* NewEncryptProcPtr(const std::string& method) {

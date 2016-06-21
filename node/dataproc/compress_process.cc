@@ -16,13 +16,15 @@ public:
   //TODO
   CompressProc(const std::string& method){}
 
-  bool proc(nlohmann::json* ) override;
+  bool proc(std::string* ) override;
 
+  std::string proc_name() const override { return std::string("compress proc");}
 };
 
 //TODO
-bool CompressProc::proc(nlohmann::json* ) {
-  return false;
+bool CompressProc::proc(std::string* data) {
+  //do nothing now
+  return true;
 }
 
 DataProcInterface* NewCompressProcPtr(const std::string& method) {

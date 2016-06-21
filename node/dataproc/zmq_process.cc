@@ -16,14 +16,16 @@ public:
 
   }
 
-  bool proc(nlohmann::json* ) override ;
+  bool proc(std::string* ) override;
+
+  std::string proc_name() const override { return std::string("zmq proc");}
 
 };
 
 //TODO
-bool ZMQProc::proc(nlohmann::json* data) {
+bool ZMQProc::proc(std::string* data) {
 
-  printf ("zmq will handle the data: %s",data->dump().c_str());
+  printf ("zmq will handle the data: %s",data->c_str());
   return true;
 }
 

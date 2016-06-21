@@ -6,7 +6,7 @@
 #define WEBSITEMONITOR_NODE_DATAPROCINTERFACE_H_
 
 
-#include "common/json.hpp"
+#include <string>
 
 namespace webmonitor {
 
@@ -18,7 +18,9 @@ public:
 
   virtual ~DataProcInterface(){}
 
-  virtual bool proc(nlohmann::json* ) = 0;
+  virtual bool proc(std::string* ) = 0;
+
+  virtual std::string proc_name() const = 0;
 
 };
 

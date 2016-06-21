@@ -8,6 +8,7 @@
 
 #include "node/logger.h"
 #include "node/dataproc/process_lib.h"
+#include "node/local_cache_util.h"
 
 
 #include "node/options.h"
@@ -39,29 +40,36 @@ private:
 
   void _data_pre_proc_thread();
 
-  void _send_to_server_thread();
+  void _write_to_local_thread();
 
 private:
 
   std::shared_ptr<spdlog::logger> _logger{spdlog::get(node::NODE_TAG)};
 
+  const uint64_t _NODE_ID;
+
   bool _running{true};
 
   unique_ptr<thread> _thread{nullptr};
+
+  unique_ptr<LocalCachedInterface> _cached;
+
+  std::vector<DataProcInterfacePtr> _pre_proc_list{};
+
   vector<thread> _threads;
 
   SafeQueue<nlohmann::json> _queue;
 
-  std::vector<DataProcInterfacePtr> _pre_proc_list{};
-  DataProcInterfacePtr _data_sender{nullptr};
+
+
 
 };
 
-NodeDataProcService::NodeDataProcService(const Options* options) {
+NodeDataProcService::NodeDataProcService(const Options* options)
+  :_NODE_ID(options->get_node_id()),
+  _cached(NewLevelDBCachedPtr(options)) {
 
   create_data_proc_list(options,&_pre_proc_list);
-
-  _data_sender.reset(create_data_sender(options));
 
   _logger->debug("finined init data process service.");
 }
@@ -76,7 +84,7 @@ void NodeDataProcService::start() {
   _logger->info("start DataProcService work thread...");
   _running = true;
   _threads.push_back(thread(&NodeDataProcService::_data_pre_proc_thread,this));
-  _threads.push_back(thread(&NodeDataProcService::_send_to_server_thread,this));
+  _threads.push_back(thread(&NodeDataProcService::_write_to_local_thread,this));
 }
 
 void NodeDataProcService::stop() {
@@ -88,12 +96,14 @@ void NodeDataProcService::stop() {
   _logger->debug("data proc thread stopped.");
 }
 
-void NodeDataProcService::_data_pre_proc_thread() {
-  _logger->debug("data pre proc thread started.");
+void NodeDataProcService::_write_to_local_thread() {
+  _logger->debug("write to local thread started.");
   while (_running) {
     nlohmann::json data{};
     if(_queue.wait_and_pop(data,3)) {
-      for (const auto& proc : _pre_proc_list) proc->proc(&data);
+      //add base info to data
+      data["node_id"] = _NODE_ID;
+      _cached->add(data.dump());
     } else {
       _logger->debug("no data in proc service...");
     }
@@ -101,15 +111,24 @@ void NodeDataProcService::_data_pre_proc_thread() {
 }
 
 //TODO send to zmq server
-void NodeDataProcService::_send_to_server_thread() {
+void NodeDataProcService::_data_pre_proc_thread() {
   _logger->debug("data sender thread started.");
+  uint64_t handle = 0;
   while (_running) {
-    nlohmann::json data{};
-    if(_queue.wait_and_pop(data,3)) {
-      for (const auto& proc : _pre_proc_list) proc->proc(&data);
-    } else {
-      _logger->debug("no data in proc service...");
+    std::string data;
+    if(_cached->get(++handle,&data)) {
+      bool proc_ret = true;
+      for (const auto& proc : _pre_proc_list) {
+        if(!proc->proc(&data)) {
+          proc_ret = false;
+          _logger->error("{} meet error!!! ", proc->proc_name());
+          break;
+        }
+      }
+      if(proc_ret) _cached->del(handle);
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 }
 
