@@ -21,9 +21,17 @@ public:
 
   virtual bool add(const std::string& data) = 0;
 
-  virtual bool get(const uint64_t handle,std::string* data) = 0;
+  virtual bool get(std::string* data) = 0;
 
-  virtual bool del(const uint64_t& handle) = 0;
+  virtual bool del_last_get() = 0;
+
+  virtual bool recovery() = 0;
+
+#ifndef NDEBUG
+  virtual uint64_t get_range_count(const std::string& range) = 0;
+
+  virtual std::string get_limit_key() const = 0;
+#endif
 
 };
 

@@ -113,10 +113,10 @@ void NodeDataProcService::_write_to_local_thread() {
 //TODO send to zmq server
 void NodeDataProcService::_data_pre_proc_thread() {
   _logger->debug("data sender thread started.");
-  uint64_t handle = 0;
+
   while (_running) {
     std::string data;
-    if(_cached->get(++handle,&data)) {
+    if(_cached->get(&data)) {
       bool proc_ret = true;
       for (const auto& proc : _pre_proc_list) {
         if(!proc->proc(&data)) {
@@ -125,10 +125,10 @@ void NodeDataProcService::_data_pre_proc_thread() {
           break;
         }
       }
-      if(proc_ret) _cached->del(handle);
+      proc_ret ? _cached->del_last_get(): _cached->recovery();
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 }
 

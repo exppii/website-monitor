@@ -30,7 +30,7 @@ add_test(taskserver_test ${PROJECT_BINARY_DIR}/bin/task_local_cached_test)
 #target_link_libraries(db_client_test ${LINK_LIBS})
 #
 # node client test
-set(NODE_LINK_LIBS grpc grpc++_unsecure protobuf dl curl)
+set(NODE_LINK_LIBS grpc grpc++_unsecure protobuf dl curl leveldb)
 
 file(GLOB NODE_SOURCE_FILES "../node/*.cc"
         "${PROTO_HDRS_DIR}/*.cc"
@@ -39,10 +39,14 @@ file(GLOB NODE_SOURCE_FILES "../node/*.cc"
         "../node/dataproc/*.cc"
         "../node/response/*.cc")
 
-LIST(APPEND NODE_SOURCE_FILES "../common/utils.cc" "node_client_test.cc"
+LIST(APPEND NODE_SOURCE_FILES
+        "../common/varint.cc"
+        "../common/utils.cc"
+        "node_client_test.cc"
         "${PROTO_HDRS_DIR}/master_service.pb.cc"
         "${PROTO_HDRS_DIR}/task_content.pb.cc"
         "node_client_task_test.cc"
+        "node_client_local_cache_test.cc"
         "node_client_test.cc"
         )
 
