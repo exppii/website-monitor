@@ -103,6 +103,7 @@ void NodeDataProcService::_write_to_local_thread() {
     if(_queue.wait_and_pop(data,3)) {
       //add base info to data
       data["node_id"] = _NODE_ID;
+      _logger->debug("add data to local cache.");
       _cached->add(data.dump());
     } else {
       _logger->debug("no data in proc service...");
@@ -112,11 +113,13 @@ void NodeDataProcService::_write_to_local_thread() {
 
 //TODO send to zmq server
 void NodeDataProcService::_data_pre_proc_thread() {
-  _logger->debug("data sender thread started.");
+
+  _logger->debug("data pre proc thread started.");
 
   while (_running) {
     std::string data;
     if(_cached->get(&data)) {
+      _logger->debug("get data to from cache: {}", data);
       bool proc_ret = true;
       for (const auto& proc : _pre_proc_list) {
         if(!proc->proc(&data)) {
@@ -125,7 +128,7 @@ void NodeDataProcService::_data_pre_proc_thread() {
           break;
         }
       }
-      proc_ret ? _cached->del_last_get(): _cached->recovery();
+      //proc_ret ? _cached->del_last_get(): _cached->recovery();
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));

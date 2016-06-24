@@ -15,6 +15,11 @@
 #include "common/varint.h"
 #include "common/utils.h"
 
+#ifndef NDEBUG
+
+#include <iostream>
+#endif
+
 using std::shared_ptr;
 using std::string;
 using leveldb::Slice;
@@ -24,10 +29,8 @@ namespace webmonitor {
 
 namespace node {
 
-static int64_t local_count = 0;
+
 const std::string DATA_TAG = "d";
-const std::string END_TAG = "e";
-const std::string TAKED_TAG = "t";
 const size_t LONG_SIZE = 8;
 
 class LevelDBCached : public LocalCachedInterface {
@@ -53,26 +56,43 @@ public:
 
   uint64_t get_range_count(const std::string &range) override;
 
-  std::string get_limit_key() const override {
-    return _limit.size() == 1 ? _limit.ToString() : DATA_TAG + std::to_string(
-        decode_fixed64(_limit.data() + 1));
+  std::string get_end_key() const override {
+    return _read_end.size() == 1 ? _read_end : DATA_TAG + std::to_string(
+        decode_fixed64(_read_end.data() + 1));
   }
+
+  std::string get_start_key() const override {
+
+    return DATA_TAG + std::to_string(decode_fixed64(_curr_start.data() + 1));
+  }
+
 
 #endif
 
 private:
 
-  string _id_to_string(const uint64_t &id) const {
+  string _next_local_key(const Slice &key) const;
+  string _prev_local_key(const Slice &key) const;
+
+  string _id_to_string(uint64_t id) const {
     char buf[LONG_SIZE] = {0};
     encode_fixint64(buf, id);
-    return std::string(buf, LONG_SIZE);
+    std::string ret(buf,LONG_SIZE);
+    return ret;
   }
 
 private:
 
   const uint32_t _BATCH_SIZE;
-  Slice _limit{DATA_TAG};
 
+  //store last key in string not slice
+  // @see https://github.com/google/leveldb/issues/387
+
+  string _last_start{DATA_TAG};
+  string _curr_start{DATA_TAG};
+  string _read_end{DATA_TAG};
+
+  uint64_t _local_count = 0;
   leveldb::Options _options;
   ::leveldb::DB *_db;
 };
@@ -80,7 +100,7 @@ private:
 bool LevelDBCached::add(const std::string &data) {
   //pre + timestamp + local_count
   auto s = _db->Put(leveldb::WriteOptions(),
-                    DATA_TAG + _id_to_string(++local_count), data);
+                    DATA_TAG + _id_to_string(++_local_count), data);
   return s.ok();
 }
 
@@ -90,16 +110,34 @@ bool LevelDBCached::get(std::string *data) {
 
   uint32_t length = 0;
 
-  for (iter->Seek(_limit);
-       iter->Valid() && ++length <= _BATCH_SIZE;
-       iter->Next()) {
+  Slice end{};
+
+  for (iter->Seek(_curr_start); ++length <= _BATCH_SIZE && iter->Valid(); iter->Next()) {
+    end = iter->key();
     (*data) += iter->value().ToString() + "||";
   }
 
-  _limit = (iter->Valid() && length > _BATCH_SIZE) ? iter->key() : Slice(
-      END_TAG);
+  if( length > 1) {
 
-  return length > 0;
+    _last_start = _curr_start;
+
+    if(length > _BATCH_SIZE && iter->Valid() ) {
+      _curr_start = iter->key().ToString();
+      _read_end = _prev_local_key(iter->key());
+
+    } else {
+      _curr_start = _next_local_key(end);
+      _read_end = end.ToString();
+    }
+
+    return true;
+
+  }
+
+
+
+
+  return false;
 }
 
 bool LevelDBCached::del_last_get() {
@@ -108,23 +146,17 @@ bool LevelDBCached::del_last_get() {
 
   leveldb::WriteBatch batch;
 
-  if(_limit == Slice(END_TAG)) {
-    for (iter->SeekToLast(); iter->Valid(); iter->Prev()) {
-      batch.Delete(iter->key());
-    }
-    _limit = Slice(DATA_TAG);
-  } else {
-    for (iter->Seek(_limit), iter->Prev(); iter->Valid(); iter->Prev()) {
-      batch.Delete(iter->key());
-    }
+  for (iter->Seek(_read_end); iter->Valid(); iter->Prev()) {
+    batch.Delete(iter->key());
   }
-  auto s = _db->Write(leveldb::WriteOptions(), &batch);
 
+  auto s = _db->Write(leveldb::WriteOptions(), &batch);
   return s.ok();
 }
 
 bool LevelDBCached::recovery() {
-  _limit = Slice(DATA_TAG);
+  _curr_start = _last_start;
+  _read_end = _prev_local_key(_last_start);
   return true;
 }
 
@@ -151,14 +183,25 @@ LevelDBCached::LevelDBCached(const Options *options)
 
   auto status = leveldb::DB::Open(_options, options->get_wal_path(), &_db);
   assert(status.ok());
-//  _db->Put(leveldb::WriteOptions(),
-//                   END_TAG + _id_to_string(++local_count), data);
 
 
 }
 
 LevelDBCached::~LevelDBCached() {
   delete _db;
+}
+
+string LevelDBCached::_next_local_key(const Slice &key) const {
+  auto c = decode_fixed64(key.data() + 1);
+  return DATA_TAG + _id_to_string(++c);
+
+}
+
+string LevelDBCached::_prev_local_key(const Slice &key) const {
+
+  auto c = decode_fixed64(key.data() + 1);
+  return DATA_TAG + _id_to_string(--c);
+
 }
 
 

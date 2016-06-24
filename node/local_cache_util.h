@@ -30,7 +30,10 @@ public:
 #ifndef NDEBUG
   virtual uint64_t get_range_count(const std::string& range) = 0;
 
-  virtual std::string get_limit_key() const = 0;
+  virtual std::string get_end_key() const = 0;
+  virtual std::string get_start_key() const = 0;
+
+  virtual void printkey() const = 0;
 #endif
 
 };

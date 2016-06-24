@@ -4,7 +4,7 @@
 
 #include "common/varint.h"
 
-#include <cstring>
+#include <string.h>
 
 #include "common/port_posix.h"
 
@@ -12,13 +12,11 @@
 
 namespace webmonitor {
 
-
-
 void encode_fixint32(char* buf, uint32_t value) {
 
   if (port::kLittleEndian) {
 
-    std::memcpy(buf, &value,sizeof(value));
+    memcpy(buf, &value,sizeof(value));
   } else {
     auto s = sizeof(value);
 
@@ -32,7 +30,7 @@ void encode_fixint64(char* buf, uint64_t value) {
 
   if (port::kLittleEndian) {
 
-    std::memcpy(buf, &value,sizeof(value));
+    memcpy(buf, &value,sizeof(value));
   } else {
     auto s = sizeof(value);
 
@@ -56,7 +54,7 @@ uint32_t decode_fixed32(const char* ptr) {
 
     uint32_t result;
 
-    std::memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
+    memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
 
     return result;
 
@@ -77,7 +75,7 @@ uint64_t decode_fixed64(const char* ptr) {
 
     uint64_t result;
 
-    std::memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
+    memcpy(&result, ptr,sizeof(result));  // gcc optimizes this to a plain load
 
     return result;
 

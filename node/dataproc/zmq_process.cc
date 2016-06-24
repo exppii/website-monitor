@@ -25,7 +25,7 @@ public:
 //TODO
 bool ZMQProc::proc(std::string* data) {
 
-  printf ("zmq will handle the data: %s",data->c_str());
+  printf ("zmq will handle the data: %s\n",data->c_str());
   return true;
 }
 

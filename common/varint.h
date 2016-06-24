@@ -17,7 +17,6 @@ void encode_fixint64(char* buf, uint64_t value);
 uint32_t decode_fixed32(const char* ptr);
 uint64_t decode_fixed64(const char* ptr);
 
-
 //const char* GetVarint32Ptr(const char* p, const char* limit,  uint32_t* value);
 //const char* GetVarint32PtrFallback(const char* p, const char* limit,uint32_t* value);
 

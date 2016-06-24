@@ -24,6 +24,7 @@ public:
 //TODO
 bool EncryptProc::proc(std::string* data ) {
   //do nothing now
+  printf ("encrypt do nothing now\n");
   return true;
 }
 

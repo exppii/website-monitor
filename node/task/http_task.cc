@@ -66,7 +66,6 @@ bool HttpTask::_do_run(Closure done) {
     default:
       return ret;
   }
-  printf("run http task, match content: %s", _content.match_content().c_str());
 
   //if _dataproc
   return done(resp.to_json());

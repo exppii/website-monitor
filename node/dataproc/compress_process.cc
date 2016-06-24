@@ -24,6 +24,7 @@ public:
 //TODO
 bool CompressProc::proc(std::string* data) {
   //do nothing now
+  printf ("compress do nothing now\n");
   return true;
 }
 

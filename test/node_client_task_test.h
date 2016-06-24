@@ -31,44 +31,16 @@ protected:
 
     data_proc.reset(node::NewDataProcServicePtr(opt.get()));
     data_proc->start();
-    _init_task_list();
   }
 
   static void TearDownTestCase() {
     data_proc->stop();
+    const std::string command = "rm -rf " + opt->get_wal_path();
+    system(command.c_str());
   }
-
-
-  static void _init_task_list() {
-
-    node::TaskFactory factory;
-    for (int i = 1; i < 11; i++) {
-      TaskDef task;
-
-      task.set_frequency(i* 5);
-      task.set_dest("baidu.com");
-      task.set_type(webmonitor::TaskDef::HTTP);
-
-      task.set_status(TaskDef::RUN);
-      task.set_type(TaskDef::HTTP);
-
-      HTTP_CONTENT content;
-      content.set_match_cmd(HTTP_CONTENT::NOT_CARE);
-      content.set_method(HTTP_CONTENT::GET);
-      content.set_match_content("404");
-
-      task.mutable_content()->PackFrom(content);
-
-      ;
-
-      task_list.push_back(factory.create(&task));
-    }
-  }
-
 
   static std::unique_ptr<node::Options> opt;
   static std::shared_ptr<node::DataProcServiceInterface> data_proc;
-  static std::vector<std::shared_ptr<node::TaskInterface> > task_list;
 
 };
 

@@ -32,7 +32,6 @@ protected:
     }
   }
 
-
   static std::unique_ptr<node::Options> opt;
   static std::unique_ptr<node::LocalCachedInterface> cache;
   static std::vector<std::string> events;

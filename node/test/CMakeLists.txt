@@ -28,3 +28,7 @@ add_executable(curl_test
         "../response/curl_response.cc"
         )
 target_link_libraries(curl_test curl)
+
+
+add_executable(slice_test slice_test.cc)
+target_link_libraries(slice_test leveldb)
