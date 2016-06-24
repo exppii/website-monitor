@@ -199,13 +199,13 @@ uint64_t LocalCachedUtil::get_count(const uint64_t &node_id) {
 
 }
 
-LocalCachedUtil::LocalCachedUtil(Options *option) {
+LocalCachedUtil::LocalCachedUtil(Options *options) {
 
   _options.create_if_missing = true;
-  mkdir_if_not_exists(option->get_cachefile_path());
+  mkdir_if_not_exists(options->get_cachefile_path());
 
   leveldb::Status status = leveldb::DB::Open(_options,
-                                             option->get_cachefile_path() +
+                                             options->get_cachefile_path() +
                                              "cacheddb", &_db);
   assert(status.ok());
 }

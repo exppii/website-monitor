@@ -45,7 +45,7 @@ LIST(APPEND NODE_SOURCE_FILES
         "node_client_test.cc"
         "${PROTO_HDRS_DIR}/master_service.pb.cc"
         "${PROTO_HDRS_DIR}/task_content.pb.cc"
-        #"node_client_task_test.cc"
+        "node_client_task_test.cc"
         "node_client_local_cache_test.cc"
         "node_client_test.cc"
         )

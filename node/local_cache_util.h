@@ -33,7 +33,7 @@ public:
   virtual std::string get_end_key() const = 0;
   virtual std::string get_start_key() const = 0;
 
-  virtual void printkey() const = 0;
+  //virtual void printkey() const = 0;
 #endif
 
 };

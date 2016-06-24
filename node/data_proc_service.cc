@@ -119,7 +119,6 @@ void NodeDataProcService::_data_pre_proc_thread() {
   while (_running) {
     std::string data;
     if(_cached->get(&data)) {
-      _logger->debug("get data to from cache: {}", data);
       bool proc_ret = true;
       for (const auto& proc : _pre_proc_list) {
         if(!proc->proc(&data)) {

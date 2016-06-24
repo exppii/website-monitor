@@ -34,24 +34,24 @@ static void _init_task_list() {
     task_list.push_back(factory.create(&task));
   }
 }
-//
-//TEST_F(NodeTaskTest, HandleOptionsReturn) {
-//  EXPECT_EQ(5660, opt->get_taskserver_port());
-//  EXPECT_EQ(1000, opt->get_node_id());
-//  EXPECT_EQ("127.0.0.1", opt->get_taskserver_addr());
-//  EXPECT_EQ("../cached/nodecache", opt->get_wal_path());
-//
-//}
-//
-//TEST_F(NodeTaskTest, HandleRunOneTask) {
-////  _init_task_list();
-////  for (auto& t : task_list) {
-////    t->run([](const nlohmann::json& data){
-////      return data_proc->add_data(data);
-////    });
-////  }
-////
-////
-////  std::this_thread::sleep_for(std::chrono::seconds(30));
-//
-//}
+
+TEST_F(NodeTaskTest, HandleOptionsReturn) {
+  EXPECT_EQ(5660, opt->get_taskserver_port());
+  EXPECT_EQ(1000, opt->get_node_id());
+  EXPECT_EQ("127.0.0.1", opt->get_taskserver_addr());
+  EXPECT_EQ("../cached/nodecache", opt->get_wal_path());
+
+}
+
+TEST_F(NodeTaskTest, HandleRunOneTask) {
+  _init_task_list();
+  for (auto& t : task_list) {
+    t->run([](const nlohmann::json& data){
+      return data_proc->add_data(data);
+    });
+  }
+
+
+  std::this_thread::sleep_for(std::chrono::seconds(30));
+
+}
