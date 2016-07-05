@@ -4,7 +4,7 @@
 
 
 
-#include "node/curl/curl_lib.h"
+#include "node/util/curl_util.h"
 
 #include <memory>
 #include <fstream>
@@ -69,7 +69,7 @@ int curl_get(const std::string &website, CurlResponse *resp) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
     //set_easy_opt to curl
     ret = curl_perform(curl, resp);
-    if (ret == 0) resp->set_data(data);
+    if (ret == 0) resp->data = data;
     curl_easy_cleanup(curl); //cleanup curl information
   } else {
     //loger init curl meeting error
@@ -95,7 +95,7 @@ int curl_head(const std::string &website, CurlResponse *resp) {
     curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
     //set_easy_opt to curl
     ret = curl_perform(curl, resp);
-    if (ret == 0) resp->set_data(data);
+    if (ret == 0) resp->data = data;
     curl_easy_cleanup(curl); //cleanup curl information
   } else {
     //loger init curl meeting error
@@ -124,26 +124,26 @@ int curl_perform(CURL *curl, CurlResponse *resp) {
   //ftime(&t1);//timestamp
   curl_result = curl_easy_perform(curl);
   //ftime(&t2);
-  resp->set_curl_code(static_cast<int>(curl_result));
+  resp->curl_code = static_cast<int>(curl_result);
 
   long respcode;
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &respcode);
-  resp->set_respcode(respcode);
+  resp->respcode = respcode;
 
   double time_in_seconds;
-  
+
   curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time_in_seconds);
-  resp->set_total_time(time_in_seconds);
+  resp->total_time = time_in_seconds ;
 
   curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time_in_seconds);
-  resp->set_connect_time(time_in_seconds);
+  resp->connect_time = time_in_seconds;
 
   curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &time_in_seconds);
-  resp->set_appconnect_time(time_in_seconds);
+  resp->appconnect_time = time_in_seconds;
   curl_easy_getinfo(curl, CURLINFO_PRETRANSFER_TIME, &time_in_seconds);
-  resp->set_pretransfer_time(time_in_seconds);
+  resp->pretransfer_time = time_in_seconds;
   curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time_in_seconds);
-  resp->set_starttransfer_time(time_in_seconds);
+  resp->starttransfer_time = time_in_seconds;
 
   return curl_result;
 

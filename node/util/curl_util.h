@@ -12,7 +12,7 @@ namespace webmonitor {
 
 namespace node {
 
-class CurlResponse;
+struct CurlResponse;
 
 int curl_get(const std::string& website, CurlResponse* resp);
 
@@ -20,10 +20,7 @@ int curl_head(const std::string& url, CurlResponse* resp);
 
 int curl_post(const std::string& url, CurlResponse* resp);
 
-}
-
-
-
+} //namespace node
 
 } //namespace webmonitor
 

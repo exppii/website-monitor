@@ -11,7 +11,7 @@
 
 #include "node/data_proc_service.h"
 #include "node/response/curl_response.h"
-#include "node/curl/curl_lib.h"
+#include "node/util/curl_util.h"
 #include "protos/master_service.pb.h"
 
 

@@ -22,7 +22,7 @@ file(GLOB SOURCE_FILES "../task/*.cc")
 configure_file(../data/url_data.txt ${PROJECT_BINARY_DIR}/data/url_data.txt COPYONLY)
 add_executable(curl_test
         curl_test.cc
-        "../curl/curl_lib.cc"
+        "../util/curl_util.cc"
         "../../common/utils.cc"
         "../curl/curl_header.cc"
         "../response/curl_response.cc"

@@ -7,13 +7,15 @@ file(GLOB HEDER_FILES "./*.h"
         "./task/*.h"
         "./curl/*.h"
         "./dataproc/*.h"
-        "./response/*.h")
+        "./response/*.h"
+        "./util/*.h")
 file(GLOB SOURCE_FILES "./*.cc"
         "${PROTO_HDRS_DIR}/*.cc"
         "./task/*.cc"
         "./curl/*.cc"
         "./dataproc/*.cc"
-        "./response/*.cc")
+        "./response/*.cc"
+        "./util/*.cc")
 
 LIST(APPEND HEDER_FILES "../common/utils.h" "../common/varint.h")
 
