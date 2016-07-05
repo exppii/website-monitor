@@ -124,6 +124,10 @@ key = "node" + node_id +
 * 维护Task列表
 * 报告自身状态
 
+### Grpc连接模块
+
+### 任务处理模块
+
 ### 数据预处理模块
 
 ![数据预处理模块](./images/node_data_proc_service.png)
