@@ -30,6 +30,8 @@ public:
 
   explicit NodeDataProcService(const Options* options);
 
+  ~NodeDataProcService();
+
   bool add_data(const nlohmann::json& data) override;
 
   void start() override ;
@@ -49,6 +51,8 @@ private:
   const uint64_t _NODE_ID;
 
   bool _running{true};
+
+  std::string _last_data{};
 
   unique_ptr<thread> _thread{nullptr};
 
@@ -117,20 +121,28 @@ void NodeDataProcService::_data_pre_proc_thread() {
   _logger->debug("data pre proc thread started.");
 
   while (_running) {
-    std::string data;
-    if(_cached->get(&data)) {
+    _last_data.clear();
+    if(_cached->get(&_last_data)) {
       bool proc_ret = true;
       for (const auto& proc : _pre_proc_list) {
-        if(!proc->proc(&data)) {
+        if(!proc->proc(&_last_data)) {
           proc_ret = false;
           _logger->error("{} meet error!!! ", proc->proc_name());
           break;
         }
       }
-      //proc_ret ? _cached->del_last_get(): _cached->recovery();
+      proc_ret ? _cached->del_last_get(): _cached->recovery();
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+}
+
+NodeDataProcService::~NodeDataProcService() {
+  std::string emty{};
+  //last_data discarded by zmq proc
+  if(!_pre_proc_list.back()->proc(&emty)) {
+    //TODO write last_data to local cache
   }
 }
 
