@@ -39,3 +39,9 @@ add_executable(ping_task_test ping_task_test.cc
         ../response/ping_response.cc
         ../util/ping_util.cc)
 target_link_libraries(ping_task_test )
+
+#zmq proc test
+
+add_executable(zmq_proc_test zmq_proc_test.cc
+        ../dataproc/zmq_process.cc )
+target_link_libraries(zmq_proc_test zmq)
