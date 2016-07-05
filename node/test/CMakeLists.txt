@@ -32,3 +32,10 @@ target_link_libraries(curl_test curl)
 
 add_executable(slice_test slice_test.cc)
 target_link_libraries(slice_test leveldb)
+
+#task test
+
+add_executable(ping_task_test ping_task_test.cc
+        ../response/ping_response.cc
+        ../util/ping_util.cc)
+target_link_libraries(ping_task_test )

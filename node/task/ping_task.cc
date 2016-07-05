@@ -4,6 +4,10 @@
 
 #include "node/task/ping_task.h"
 #include "node/task/task_interface.h"
+#include "node/response/ping_response.h"
+
+#include "node/util/ping_util.h"
+
 #include "protos/master_service.pb.h"
 #include "protos/task_content.pb.h"
 
@@ -44,8 +48,11 @@ PingTask::PingTask(const TaskDef *task) : _task_def(*task) {
 
 //TODO
 bool PingTask::_do_run(Closure done) {
-  const nlohmann::json n{};
-  return done(n);
+
+  PingResponse resp;
+  if(ping_ip(_task_def.dest(),&resp)) {
+    return done(resp.to_json());
+  }
   return false;
 }
 

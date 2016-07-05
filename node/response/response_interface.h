@@ -21,10 +21,8 @@ public:
 
 };
 
-}
+} //namespace node
 
-}
-
-
+} //namespace webmonitor
 
 #endif //WEBSITEMONITOR_NODE_RESPONSE_INTERFACE_H_
