@@ -19,9 +19,11 @@ public:
   ZMQProc(const std::string& url, const uint32_t port)
       :_context(1), _socket(_context, ZMQ_PUSH) { //context with one io_threads
     _socket.setsockopt(ZMQ_SNDHWM, 1); //socket queue size
+#ifndef NDEBUG
    //Pending messages shall be discarded immediately when the socket is
    //closed with zmq_close()
     _socket.setsockopt(ZMQ_LINGER, 0);
+#endif
     auto addr = "tcp://" + url + ":" + std::to_string(port);
     _socket.connect(addr);
 
@@ -43,8 +45,7 @@ private:
 //TODO
 bool ZMQProc::proc(std::string* data) {
   zmq::message_t msg(data->cbegin(),data->cend());
-  return _socket.send(msg,ZMQ_NOBLOCK) == 0;
-
+  return _socket.send(msg,ZMQ_NOBLOCK);
 }
 
 DataProcInterface* NewZMQProcPtr(const std::string& url, const uint32_t port){

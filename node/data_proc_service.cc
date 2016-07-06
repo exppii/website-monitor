@@ -52,8 +52,6 @@ private:
 
   bool _running{true};
 
-  std::string _last_data{};
-
   unique_ptr<thread> _thread{nullptr};
 
   unique_ptr<LocalCachedInterface> _cached;
@@ -63,8 +61,6 @@ private:
   vector<thread> _threads;
 
   SafeQueue<nlohmann::json> _queue;
-
-
 
 
 };
@@ -121,11 +117,11 @@ void NodeDataProcService::_data_pre_proc_thread() {
   _logger->debug("data pre proc thread started.");
 
   while (_running) {
-    _last_data.clear();
-    if(_cached->get(&_last_data)) {
+    std::string data{};
+    if(_cached->get(&data)) {
       bool proc_ret = true;
       for (const auto& proc : _pre_proc_list) {
-        if(!proc->proc(&_last_data)) {
+        if(!proc->proc(&data)) {
           proc_ret = false;
           _logger->error("{} meet error!!! ", proc->proc_name());
           break;
