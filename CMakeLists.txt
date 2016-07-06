@@ -99,6 +99,7 @@ ENDFOREACH()
 
 add_subdirectory(taskserver)
 add_subdirectory(cwebclient)
+add_subdirectory(zmqserver)
 add_subdirectory(node)
 
 
